@@ -95,8 +95,24 @@ For each selected beacon:
 | Parameter | Description |
 |-----------|-------------|
 | **Waste type name** | E.g. "Paper", "Plastic", "Organic" (pre-filled from beacon) |
-| **Pickup days** | Checkbox for each day of the week |
-| **Exposure start time** | Time from which the bin can be put out the evening **before** pickup day |
+| **Pickup scheduling mode** | Choose between **Calendar** or **Boolean entity** |
+
+**Calendar mode** — schedule by day of week and time:
+
+| Parameter | Description |
+|-----------|-------------|
+| **Pickup days** | Checkbox for each day of the week (Mon–Sun) |
+| **Exposure start time** | Time from which the bin can be put out the **evening before** pickup day (e.g. `20:00`) |
+
+The exposure window opens at the configured time on the evening before a pickup day, and lasts until midnight of the pickup day itself.
+
+**Boolean entity mode** — delegate to an external entity:
+
+| Parameter | Description |
+|-----------|-------------|
+| **Pickup boolean entity** | Select any `binary_sensor` or `input_boolean` — when `on`, the bin is exposable |
+
+This mode lets you integrate any external logic: custom calendars, non-weekly schedules, the [garbage_collection](https://github.com/bruxy70/Garbage-Collection) integration, or automations with arbitrary rules.
 
 ---
 
@@ -339,8 +355,24 @@ Per ogni beacon selezionato:
 | Parametro | Descrizione |
 |-----------|-------------|
 | **Nome tipologia** | Es. "Carta", "Plastica", "Umido" (preletto dal beacon) |
-| **Giorni di prelievo** | Checkbox per ogni giorno della settimana |
-| **Orario inizio esposizione** | Ora dalla quale il secchio può essere esposto la sera **prima** del giorno di prelievo |
+| **Modalità schedulazione prelievo** | Scegli tra **Calendario** o **Entità booleana** |
+
+**Modalità Calendario** — schedulazione per giorno della settimana e orario:
+
+| Parametro | Descrizione |
+|-----------|-------------|
+| **Giorni di prelievo** | Checkbox per ogni giorno della settimana (Lun–Dom) |
+| **Orario inizio esposizione** | Ora dalla quale il secchio può essere esposto la sera **prima** del giorno di prelievo (es. `20:00`) |
+
+La finestra di esposizione si apre all'orario configurato la sera prima del giorno di prelievo e dura fino a mezzanotte del giorno di prelievo stesso.
+
+**Modalità Entità Booleana** — delega a un'entità esterna:
+
+| Parametro | Descrizione |
+|-----------|-------------|
+| **Entità booleana prelievo** | Seleziona un `binary_sensor` o `input_boolean` qualsiasi — quando è `on`, il secchio è esponibile |
+
+Questa modalità permette di integrare qualsiasi logica esterna: calendari custom, periodicità non settimanale, l'integrazione [garbage_collection](https://github.com/bruxy70/Garbage-Collection), o automazioni con regole arbitrarie.
 
 ---
 
