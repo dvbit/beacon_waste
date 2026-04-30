@@ -24,10 +24,19 @@
             },
             "bin": {
                 "title": "Tonne {bin_number} konfigurieren: {beacon_name}",
-                "description": "Beacon: {beacon_name} (MAC: {beacon_mac}). Name, Abfuhrtage und Bereitstellungszeit konfigurieren.",
+                "description": "Beacon: {beacon_name} (MAC: {beacon_mac}). Name und Abfuhr-Planungsmodus wählen.",
                 "data": {
                     "bin_name": "Name der Abfallart",
-                    "pickup_mode": "Abfuhr-Planungsmodus",
+                    "pickup_mode": "Abfuhr-Planungsmodus"
+                },
+                "data_description": {
+                    "pickup_mode": "Wählen Sie 'Kalender' für Wochentage + Uhrzeit. Wählen Sie 'Boolesche Entität' für einen externen binary_sensor oder input_boolean."
+                }
+            },
+            "bin_calendar": {
+                "title": "Abfuhrkalender: {beacon_name}",
+                "description": "Abfuhrtage und Bereitstellungszeit für {beacon_name} (MAC: {beacon_mac}) konfigurieren.",
+                "data": {
                     "day_mon": "Montag",
                     "day_tue": "Dienstag",
                     "day_wed": "Mittwoch",
@@ -35,13 +44,20 @@
                     "day_fri": "Freitag",
                     "day_sat": "Samstag",
                     "day_sun": "Sonntag",
-                    "pickup_time_start": "Bereitstellungszeit (Vorabend)",
+                    "pickup_time_start": "Bereitstellungszeit (Vorabend)"
+                },
+                "data_description": {
+                    "pickup_time_start": "Uhrzeit, ab der die Tonne am Vorabend bereitgestellt werden kann (z.B. 20:00)"
+                }
+            },
+            "bin_boolean": {
+                "title": "Boolesche Entität: {beacon_name}",
+                "description": "Entität auswählen, die angibt, wann {beacon_name} (MAC: {beacon_mac}) bereitgestellt werden soll.",
+                "data": {
                     "pickup_boolean_entity": "Boolesche Entität für Abholung"
                 },
                 "data_description": {
-                    "pickup_mode": "Wählen Sie 'Kalender' für Wochentage und Uhrzeit. Wählen Sie 'Boolesche Entität' für einen externen binary_sensor oder input_boolean.",
-                    "pickup_time_start": "Uhrzeit, ab der die Tonne am Vorabend des Abfuhrtages bereitgestellt werden kann (z.B. 20:00)",
-                    "pickup_boolean_entity": "Wählen Sie den binary_sensor oder input_boolean, der angibt, ob die Tonne bereitgestellt werden soll."
+                    "pickup_boolean_entity": "Wenn diese Entität 'on' ist, kann die Tonne bereitgestellt werden."
                 }
             }
         },

@@ -146,6 +146,9 @@ class BeaconWasteConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self._bins: list[dict[str, Any]] = []
         # Indice del secchio attualmente in configurazione
         self._current_bin: int = 0
+        # Dati parziali del secchio corrente (nome + modalità), salvati da async_step_bin
+        # prima di passare a async_step_bin_calendar o async_step_bin_boolean
+        self._current_bin_partial: dict[str, Any] = {}
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -294,103 +297,37 @@ class BeaconWasteConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_bin(
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.ConfigFlowResult:
-        """Step 2..N: configura ogni beacon selezionato.
+        """Step A: nome tipologia e scelta modalità prelievo.
 
-        Per ogni beacon chiede:
-        - Nome tipologia spazzatura (preletto dal sensore _name)
-        - Modalità prelievo: calendario (giorni + orario) o booleana (entità esterna)
-        - Se calendario: giorni della settimana + orario inizio esposizione
-        - Se booleana: entity_id di un binary_sensor/input_boolean
-
-        Alla fine dell'ultimo beacon salva la config entry completa.
+        Mostra solo nome e selettore modalità. La scelta determina
+        quale step successivo verrà mostrato (bin_calendar o bin_boolean).
         """
         errors: dict[str, str] = {}
 
         if user_input is not None:
-            pickup_mode = user_input.get(CONF_PICKUP_MODE, PICKUP_MODE_CALENDAR)
+            self._current_bin_partial = {
+                CONF_BIN_NAME: user_input[CONF_BIN_NAME],
+                CONF_PICKUP_MODE: user_input[CONF_PICKUP_MODE],
+            }
+            if user_input[CONF_PICKUP_MODE] == PICKUP_MODE_CALENDAR:
+                return await self.async_step_bin_calendar()
+            return await self.async_step_bin_boolean()
 
-            if pickup_mode == PICKUP_MODE_CALENDAR:
-                # Modalità calendario: valida che almeno un giorno sia selezionato
-                pickup_days = [
-                    day for day in DAYS_OF_WEEK
-                    if user_input.get(f"day_{day}", False)
-                ]
-                if not pickup_days:
-                    errors["base"] = "no_pickup_days"
-            else:
-                # Modalità booleana: valida che l'entity_id sia stato fornito
-                pickup_days = []
-                if not user_input.get(CONF_PICKUP_BOOLEAN_ENTITY):
-                    errors["base"] = "no_boolean_entity"
-
-            if not errors:
-                mac = self._selected_macs[self._current_bin]
-                info = self._discovered_beacons[mac]
-
-                bin_config = {
-                    CONF_BIN_NAME: user_input[CONF_BIN_NAME],
-                    CONF_BEACON_MAC: mac,
-                    "entity_prefix": info["prefix"],
-                    CONF_PICKUP_MODE: pickup_mode,
-                    # Campi specifici modalità calendario
-                    CONF_PICKUP_DAYS: pickup_days,
-                    CONF_PICKUP_TIME_START: user_input.get(CONF_PICKUP_TIME_START, "20:00"),
-                    # Campi specifici modalità booleana
-                    CONF_PICKUP_BOOLEAN_ENTITY: user_input.get(CONF_PICKUP_BOOLEAN_ENTITY, ""),
-                }
-                self._bins.append(bin_config)
-                self._current_bin += 1
-
-                if self._current_bin < len(self._selected_macs):
-                    return await self.async_step_bin()
-
-                return self.async_create_entry(
-                    title="Beacon Waste Collection",
-                    data={
-                        **self._global_config,
-                        CONF_BINS: self._bins,
-                    },
-                )
-
-        # Prepara il form per il secchio corrente
         mac = self._selected_macs[self._current_bin]
         info = self._discovered_beacons[mac]
-        default_name = info["name"]
         bin_num = self._current_bin + 1
 
         schema = vol.Schema(
             {
-                # Nome tipologia, preletto dal sensore _name del beacon
-                vol.Required(CONF_BIN_NAME, default=default_name): TextSelector(
+                vol.Required(CONF_BIN_NAME, default=info["name"]): TextSelector(
                     TextSelectorConfig(type="text")
                 ),
-                # Modalità di schedulazione prelievo
                 vol.Required(
                     CONF_PICKUP_MODE, default=PICKUP_MODE_CALENDAR
                 ): SelectSelector(
                     SelectSelectorConfig(
                         options=PICKUP_MODE_OPTIONS,
                         mode=SelectSelectorMode.LIST,
-                    )
-                ),
-                # --- Campi modalità CALENDARIO ---
-                # Checkbox giorni di prelievo (L M M G V S D)
-                vol.Optional("day_mon", default=False): BooleanSelector(),
-                vol.Optional("day_tue", default=False): BooleanSelector(),
-                vol.Optional("day_wed", default=False): BooleanSelector(),
-                vol.Optional("day_thu", default=False): BooleanSelector(),
-                vol.Optional("day_fri", default=False): BooleanSelector(),
-                vol.Optional("day_sat", default=False): BooleanSelector(),
-                vol.Optional("day_sun", default=False): BooleanSelector(),
-                # Orario esposizione: da quest'ora la sera PRIMA del prelievo
-                vol.Optional(CONF_PICKUP_TIME_START, default="20:00"): TimeSelector(
-                    TimeSelectorConfig()
-                ),
-                # --- Campi modalità BOOLEANA ---
-                # Entity ID del binary_sensor o input_boolean esterno
-                vol.Optional(CONF_PICKUP_BOOLEAN_ENTITY): EntitySelector(
-                    EntitySelectorConfig(
-                        domain=["binary_sensor", "input_boolean"]
                     )
                 ),
             }
@@ -402,7 +339,134 @@ class BeaconWasteConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             errors=errors,
             description_placeholders={
                 "bin_number": str(bin_num),
-                "beacon_name": default_name,
+                "beacon_name": info["name"],
                 "beacon_mac": mac,
             },
         )
+
+    async def async_step_bin_calendar(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """Step B1: configurazione modalità calendario (giorni + orario)."""
+        errors: dict[str, str] = {}
+
+        if user_input is not None:
+            pickup_days = [
+                day for day in DAYS_OF_WEEK
+                if user_input.get(f"day_{day}", False)
+            ]
+            if not pickup_days:
+                errors["base"] = "no_pickup_days"
+
+            if not errors:
+                mac = self._selected_macs[self._current_bin]
+                info = self._discovered_beacons[mac]
+                bin_config = {
+                    **self._current_bin_partial,
+                    CONF_BEACON_MAC: mac,
+                    "entity_prefix": info["prefix"],
+                    CONF_PICKUP_DAYS: pickup_days,
+                    CONF_PICKUP_TIME_START: user_input[CONF_PICKUP_TIME_START],
+                    CONF_PICKUP_BOOLEAN_ENTITY: "",
+                }
+                self._bins.append(bin_config)
+                self._current_bin += 1
+
+                if self._current_bin < len(self._selected_macs):
+                    return await self.async_step_bin()
+
+                return self.async_create_entry(
+                    title="Beacon Waste Collection",
+                    data={**self._global_config, CONF_BINS: self._bins},
+                )
+
+        schema = vol.Schema(
+            {
+                vol.Optional("day_mon", default=False): BooleanSelector(),
+                vol.Optional("day_tue", default=False): BooleanSelector(),
+                vol.Optional("day_wed", default=False): BooleanSelector(),
+                vol.Optional("day_thu", default=False): BooleanSelector(),
+                vol.Optional("day_fri", default=False): BooleanSelector(),
+                vol.Optional("day_sat", default=False): BooleanSelector(),
+                vol.Optional("day_sun", default=False): BooleanSelector(),
+                vol.Required(CONF_PICKUP_TIME_START, default="20:00"): TimeSelector(
+                    TimeSelectorConfig()
+                ),
+            }
+        )
+
+        mac = self._selected_macs[self._current_bin]
+        info = self._discovered_beacons[mac]
+
+        return self.async_show_form(
+            step_id="bin_calendar",
+            data_schema=schema,
+            errors=errors,
+            description_placeholders={
+                "bin_number": str(self._current_bin + 1),
+                "beacon_name": info["name"],
+                "beacon_mac": mac,
+            },
+        )
+
+    async def async_step_bin_boolean(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """Step B2: configurazione modalità booleana (entità esterna)."""
+        errors: dict[str, str] = {}
+
+        if user_input is not None:
+            if not user_input.get(CONF_PICKUP_BOOLEAN_ENTITY):
+                errors["base"] = "no_boolean_entity"
+
+            if not errors:
+                mac = self._selected_macs[self._current_bin]
+                info = self._discovered_beacons[mac]
+                bin_config = {
+                    **self._current_bin_partial,
+                    CONF_BEACON_MAC: mac,
+                    "entity_prefix": info["prefix"],
+                    CONF_PICKUP_DAYS: [],
+                    CONF_PICKUP_TIME_START: "20:00",
+                    CONF_PICKUP_BOOLEAN_ENTITY: user_input[CONF_PICKUP_BOOLEAN_ENTITY],
+                }
+                self._bins.append(bin_config)
+                self._current_bin += 1
+
+                if self._current_bin < len(self._selected_macs):
+                    return await self.async_step_bin()
+
+                return self.async_create_entry(
+                    title="Beacon Waste Collection",
+                    data={**self._global_config, CONF_BINS: self._bins},
+                )
+
+        schema = vol.Schema(
+            {
+                vol.Required(CONF_PICKUP_BOOLEAN_ENTITY): EntitySelector(
+                    EntitySelectorConfig(
+                        domain=["binary_sensor", "input_boolean"]
+                    )
+                ),
+            }
+        )
+
+        mac = self._selected_macs[self._current_bin]
+        info = self._discovered_beacons[mac]
+
+        return self.async_show_form(
+            step_id="bin_boolean",
+            data_schema=schema,
+            errors=errors,
+            description_placeholders={
+                "bin_number": str(self._current_bin + 1),
+                "beacon_name": info["name"],
+                "beacon_mac": mac,
+            },
+        )
+
+    def _save_bin_and_continue(
+        self, extra: dict[str, Any]
+    ) -> config_entries.ConfigFlowResult:
+        """Non più usato — logica inlined negli step calendar/boolean."""
+        raise NotImplementedError

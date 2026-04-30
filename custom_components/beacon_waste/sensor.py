@@ -13,6 +13,8 @@ Crea due sensori per ogni secchio:
    - Utile per il debug e la calibrazione delle soglie
    - Usa SensorStateClass.MEASUREMENT (valore istantaneo)
    - Unità di misura: dBm (SensorDeviceClass.SIGNAL_STRENGTH)
+   - Il valore iniziale viene letto dall'entità ESPHome al momento del setup,
+     così da mostrare subito un valore valido senza aspettare il primo aggiornamento
 
 Entrambe le entità sono raggruppate sotto il dispositivo "Secchio {Nome}".
 """
@@ -160,8 +162,23 @@ class BinRssiSensor(SensorEntity):
         return self._coordinator.rssi_value
 
     async def async_added_to_hass(self) -> None:
-        """Registra il callback per ricevere aggiornamenti dal coordinator."""
+        """Registra il callback e legge il valore RSSI corrente all'avvio.
+
+        Se il coordinator non ha ancora ricevuto un evento RSSI (rssi_value è None),
+        tenta di leggere il valore corrente direttamente dallo stato dell'entità
+        ESPHome per mostrare subito un valore valido invece di 'unavailable'.
+        """
         self._coordinator.register_callback(self._handle_update)
+
+        # Popola il valore iniziale se il coordinator non lo ha ancora ricevuto.
+        # Questo accade tipicamente al primo avvio o dopo un riavvio di HA.
+        if self._coordinator.rssi_value is None:
+            state = self.hass.states.get(self._coordinator.rssi_entity)
+            if state and state.state not in ("unknown", "unavailable"):
+                try:
+                    self._coordinator.rssi_value = float(state.state)
+                except (ValueError, TypeError):
+                    pass
 
     async def async_will_remove_from_hass(self) -> None:
         """Rimuovi il callback quando l'entità viene rimossa."""

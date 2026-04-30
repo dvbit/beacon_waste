@@ -24,10 +24,19 @@
             },
             "bin": {
                 "title": "Configurar cubo {bin_number}: {beacon_name}",
-                "description": "Beacon: {beacon_name} (MAC: {beacon_mac}). Configura nombre, días y horario de exposición.",
+                "description": "Beacon: {beacon_name} (MAC: {beacon_mac}). Elige nombre y modo de programación.",
                 "data": {
                     "bin_name": "Nombre del tipo de residuo",
-                    "pickup_mode": "Modo de programación de recogida",
+                    "pickup_mode": "Modo de programación de recogida"
+                },
+                "data_description": {
+                    "pickup_mode": "Elige 'Calendario' para días + horario. Elige 'Entidad booleana' para un binary_sensor o input_boolean externo."
+                }
+            },
+            "bin_calendar": {
+                "title": "Calendario de recogida: {beacon_name}",
+                "description": "Configura los días y horario de exposición para {beacon_name} (MAC: {beacon_mac}).",
+                "data": {
                     "day_mon": "Lunes",
                     "day_tue": "Martes",
                     "day_wed": "Miércoles",
@@ -35,13 +44,20 @@
                     "day_fri": "Viernes",
                     "day_sat": "Sábado",
                     "day_sun": "Domingo",
-                    "pickup_time_start": "Hora de inicio exposición (noche anterior)",
+                    "pickup_time_start": "Hora de inicio exposición (noche anterior)"
+                },
+                "data_description": {
+                    "pickup_time_start": "Hora a partir de la cual el cubo puede exponerse la noche anterior (ej. 20:00)"
+                }
+            },
+            "bin_boolean": {
+                "title": "Entidad booleana: {beacon_name}",
+                "description": "Selecciona la entidad que indica cuándo exponer {beacon_name} (MAC: {beacon_mac}).",
+                "data": {
                     "pickup_boolean_entity": "Entidad booleana de recogida"
                 },
                 "data_description": {
-                    "pickup_mode": "Elige 'Calendario' para usar días de la semana y horario. Elige 'Entidad booleana' para usar un binary_sensor o input_boolean externo.",
-                    "pickup_time_start": "Hora a partir de la cual el cubo puede exponerse la noche anterior al día de recogida (ej. 20:00)",
-                    "pickup_boolean_entity": "Selecciona el binary_sensor o input_boolean que indica si el cubo debe exponerse."
+                    "pickup_boolean_entity": "Cuando esta entidad está 'on', el cubo es exponible."
                 }
             }
         },

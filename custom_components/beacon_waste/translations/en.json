@@ -24,10 +24,19 @@
             },
             "bin": {
                 "title": "Configure bin {bin_number}: {beacon_name}",
-                "description": "Beacon: {beacon_name} (MAC: {beacon_mac}). Configure name, pickup days and exposure time.",
+                "description": "Beacon: {beacon_name} (MAC: {beacon_mac}). Choose a name and the pickup scheduling mode.",
                 "data": {
                     "bin_name": "Waste type name",
-                    "pickup_mode": "Pickup scheduling mode",
+                    "pickup_mode": "Pickup scheduling mode"
+                },
+                "data_description": {
+                    "pickup_mode": "Choose 'Calendar' for days of the week + time. Choose 'Boolean entity' to delegate to an external binary_sensor or input_boolean."
+                }
+            },
+            "bin_calendar": {
+                "title": "Pickup calendar: {beacon_name}",
+                "description": "Configure pickup days and exposure time for {beacon_name} (MAC: {beacon_mac}).",
+                "data": {
                     "day_mon": "Monday",
                     "day_tue": "Tuesday",
                     "day_wed": "Wednesday",
@@ -35,13 +44,20 @@
                     "day_fri": "Friday",
                     "day_sat": "Saturday",
                     "day_sun": "Sunday",
-                    "pickup_time_start": "Exposure start time (evening before)",
+                    "pickup_time_start": "Exposure start time (evening before)"
+                },
+                "data_description": {
+                    "pickup_time_start": "Time from which the bin can be put out the evening before pickup day (e.g. 20:00)"
+                }
+            },
+            "bin_boolean": {
+                "title": "Pickup boolean entity: {beacon_name}",
+                "description": "Select the entity that indicates when to expose {beacon_name} (MAC: {beacon_mac}). Can be an input_boolean, a binary_sensor from an external calendar or automation.",
+                "data": {
                     "pickup_boolean_entity": "Pickup boolean entity"
                 },
                 "data_description": {
-                    "pickup_mode": "Choose 'Calendar' to use days of the week and time. Choose 'Boolean entity' to use an external binary_sensor or input_boolean (e.g. from a custom calendar or automation).",
-                    "pickup_time_start": "Time from which the bin can be put out the evening before pickup day (e.g. 20:00)",
-                    "pickup_boolean_entity": "Select the binary_sensor or input_boolean that indicates whether the bin should be exposed. When 'on', the bin is exposable."
+                    "pickup_boolean_entity": "When this entity is 'on', the bin is exposable. Use it to integrate non-weekly schedules or external logic."
                 }
             }
         },
