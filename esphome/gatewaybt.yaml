@@ -1,0 +1,408 @@
+substitutions:
+  b1_mac: "E8:05:97:07:88:2B"
+  b1_mac_id: "E8059707882B"
+  b2_mac: "EA:9B:FC:16:E6:CB"
+  b2_mac_id: "EA9BFC16E6CB"
+  b3_mac: "AA:BB:CC:DD:EE:01"
+  b3_mac_id: "AABBCCDDEE01"
+  b4_mac: "AA:BB:CC:DD:EE:02"
+  b4_mac_id: "AABBCCDDEE02"
+  b5_mac: "AA:BB:CC:DD:EE:03"
+  b5_mac_id: "AABBCCDDEE03"
+
+esphome:
+  name: esp32-bluetooth-proxy-626540
+  friendly_name: Bluetooth Proxy 626540
+  min_version: 2024.6.0
+  name_add_mac_suffix: false
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+
+ethernet:
+  type: LAN8720
+  mdc_pin: GPIO23
+  mdio_pin: GPIO18
+  clk_mode: GPIO16_OUT
+  phy_addr: 0
+  power_pin: GPIO5
+  manual_ip:
+    static_ip: 192.168.2.166
+    gateway: 192.168.2.1
+    subnet: 255.255.255.0
+
+web_server:
+  port: 80
+  version: 3
+
+api:
+
+logger:
+  level: DEBUG
+
+ota:
+  - platform: esphome
+    id: ota_esphome
+
+text_sensor:
+  - platform: template
+    name: "${b1_mac_id} Name"
+    id: b1_name
+  - platform: template
+    name: "${b2_mac_id} Name"
+    id: b2_name
+  - platform: template
+    name: "${b3_mac_id} Name"
+    id: b3_name
+  - platform: template
+    name: "${b4_mac_id} Name"
+    id: b4_name
+  - platform: template
+    name: "${b5_mac_id} Name"
+    id: b5_name
+
+sensor:
+  - platform: uptime
+    name: "Uptime"
+    entity_category: diagnostic
+
+  # --- b1 ---
+  - platform: ble_rssi
+    mac_address: "${b1_mac}"
+    name: "${b1_mac_id} RSSI"
+    filters:
+      - sliding_window_moving_average:
+          window_size: 10
+          send_every: 5
+  - platform: template
+    name: "${b1_mac_id} Battery"
+    id: b1_battery
+    device_class: battery
+    unit_of_measurement: "%"
+    entity_category: diagnostic
+    accuracy_decimals: 0
+  - platform: template
+    name: "${b1_mac_id} Temperature"
+    id: b1_temp
+    device_class: temperature
+    unit_of_measurement: "°C"
+    state_class: measurement
+    accuracy_decimals: 2
+  - platform: template
+    name: "${b1_mac_id} Humidity"
+    id: b1_hum
+    device_class: humidity
+    unit_of_measurement: "%"
+    state_class: measurement
+    accuracy_decimals: 2
+
+  # --- b2 ---
+  - platform: ble_rssi
+    mac_address: "${b2_mac}"
+    name: "${b2_mac_id} RSSI"
+    filters:
+      - sliding_window_moving_average:
+          window_size: 10
+          send_every: 5
+  - platform: template
+    name: "${b2_mac_id} Battery"
+    id: b2_battery
+    device_class: battery
+    unit_of_measurement: "%"
+    entity_category: diagnostic
+    accuracy_decimals: 0
+  - platform: template
+    name: "${b2_mac_id} Temperature"
+    id: b2_temp
+    device_class: temperature
+    unit_of_measurement: "°C"
+    state_class: measurement
+    accuracy_decimals: 2
+  - platform: template
+    name: "${b2_mac_id} Humidity"
+    id: b2_hum
+    device_class: humidity
+    unit_of_measurement: "%"
+    state_class: measurement
+    accuracy_decimals: 2
+
+  # --- b3 ---
+  - platform: ble_rssi
+    mac_address: "${b3_mac}"
+    name: "${b3_mac_id} RSSI"
+    filters:
+      - sliding_window_moving_average:
+          window_size: 10
+          send_every: 5
+  - platform: template
+    name: "${b3_mac_id} Battery"
+    id: b3_battery
+    device_class: battery
+    unit_of_measurement: "%"
+    entity_category: diagnostic
+    accuracy_decimals: 0
+  - platform: template
+    name: "${b3_mac_id} Temperature"
+    id: b3_temp
+    device_class: temperature
+    unit_of_measurement: "°C"
+    state_class: measurement
+    accuracy_decimals: 2
+  - platform: template
+    name: "${b3_mac_id} Humidity"
+    id: b3_hum
+    device_class: humidity
+    unit_of_measurement: "%"
+    state_class: measurement
+    accuracy_decimals: 2
+
+  # --- b4 ---
+  - platform: ble_rssi
+    mac_address: "${b4_mac}"
+    name: "${b4_mac_id} RSSI"
+    filters:
+      - sliding_window_moving_average:
+          window_size: 10
+          send_every: 5
+  - platform: template
+    name: "${b4_mac_id} Battery"
+    id: b4_battery
+    device_class: battery
+    unit_of_measurement: "%"
+    entity_category: diagnostic
+    accuracy_decimals: 0
+  - platform: template
+    name: "${b4_mac_id} Temperature"
+    id: b4_temp
+    device_class: temperature
+    unit_of_measurement: "°C"
+    state_class: measurement
+    accuracy_decimals: 2
+  - platform: template
+    name: "${b4_mac_id} Humidity"
+    id: b4_hum
+    device_class: humidity
+    unit_of_measurement: "%"
+    state_class: measurement
+    accuracy_decimals: 2
+
+  # --- b5 ---
+  - platform: ble_rssi
+    mac_address: "${b5_mac}"
+    name: "${b5_mac_id} RSSI"
+    filters:
+      - sliding_window_moving_average:
+          window_size: 10
+          send_every: 5
+  - platform: template
+    name: "${b5_mac_id} Battery"
+    id: b5_battery
+    device_class: battery
+    unit_of_measurement: "%"
+    entity_category: diagnostic
+    accuracy_decimals: 0
+  - platform: template
+    name: "${b5_mac_id} Temperature"
+    id: b5_temp
+    device_class: temperature
+    unit_of_measurement: "°C"
+    state_class: measurement
+    accuracy_decimals: 2
+  - platform: template
+    name: "${b5_mac_id} Humidity"
+    id: b5_hum
+    device_class: humidity
+    unit_of_measurement: "%"
+    state_class: measurement
+    accuracy_decimals: 2
+
+binary_sensor:
+  # --- b1 ---
+  - platform: template
+    name: "${b1_mac_id} Vibration"
+    id: b1_vib
+    device_class: vibration
+    filters:
+      - delayed_off: 5s
+  - platform: template
+    name: "${b1_mac_id} Button"
+    id: b1_btn
+    filters:
+      - delayed_off: 2s
+
+  # --- b2 ---
+  - platform: template
+    name: "${b2_mac_id} Vibration"
+    id: b2_vib
+    device_class: vibration
+    filters:
+      - delayed_off: 5s
+  - platform: template
+    name: "${b2_mac_id} Button"
+    id: b2_btn
+    filters:
+      - delayed_off: 2s
+
+  # --- b3 ---
+  - platform: template
+    name: "${b3_mac_id} Vibration"
+    id: b3_vib
+    device_class: vibration
+    filters:
+      - delayed_off: 5s
+  - platform: template
+    name: "${b3_mac_id} Button"
+    id: b3_btn
+    filters:
+      - delayed_off: 2s
+
+  # --- b4 ---
+  - platform: template
+    name: "${b4_mac_id} Vibration"
+    id: b4_vib
+    device_class: vibration
+    filters:
+      - delayed_off: 5s
+  - platform: template
+    name: "${b4_mac_id} Button"
+    id: b4_btn
+    filters:
+      - delayed_off: 2s
+
+  # --- b5 ---
+  - platform: template
+    name: "${b5_mac_id} Vibration"
+    id: b5_vib
+    device_class: vibration
+    filters:
+      - delayed_off: 5s
+  - platform: template
+    name: "${b5_mac_id} Button"
+    id: b5_btn
+    filters:
+      - delayed_off: 2s
+
+esp32_ble_tracker:
+  scan_parameters:
+    window: 300ms
+    continuous: true
+  on_ble_advertise:
+    - mac_address: "${b1_mac}"
+      then:
+        - lambda: |-
+            auto nm = x.get_name();
+            if (nm.length() > 0) id(b1_name).publish_state(nm);
+    - mac_address: "${b2_mac}"
+      then:
+        - lambda: |-
+            auto nm = x.get_name();
+            if (nm.length() > 0) id(b2_name).publish_state(nm);
+    - mac_address: "${b3_mac}"
+      then:
+        - lambda: |-
+            auto nm = x.get_name();
+            if (nm.length() > 0) id(b3_name).publish_state(nm);
+    - mac_address: "${b4_mac}"
+      then:
+        - lambda: |-
+            auto nm = x.get_name();
+            if (nm.length() > 0) id(b4_name).publish_state(nm);
+    - mac_address: "${b5_mac}"
+      then:
+        - lambda: |-
+            auto nm = x.get_name();
+            if (nm.length() > 0) id(b5_name).publish_state(nm);
+  on_ble_service_data_advertise:
+    - mac_address: "${b1_mac}"
+      service_uuid: "5242"
+      then:
+        - lambda: |-
+            if (x.size() < 13) return;
+            id(b1_battery).publish_state(x[1]);
+            uint8_t pkt = x[10];
+            if (pkt == 0x01) {
+              id(b1_temp).publish_state((float)x[11] + (float)x[12] / 100.0f);
+            } else if (pkt == 0x03) {
+              id(b1_hum).publish_state((float)x[11] + (float)x[12] / 100.0f);
+            } else if (pkt == 0x04) {
+              id(b1_vib).publish_state(x[11] > 0);
+            } else if (pkt == 0x06) {
+              id(b1_btn).publish_state(x[11] > 0);
+            }
+    - mac_address: "${b2_mac}"
+      service_uuid: "5242"
+      then:
+        - lambda: |-
+            if (x.size() < 13) return;
+            id(b2_battery).publish_state(x[1]);
+            uint8_t pkt = x[10];
+            if (pkt == 0x01) {
+              id(b2_temp).publish_state((float)x[11] + (float)x[12] / 100.0f);
+            } else if (pkt == 0x03) {
+              id(b2_hum).publish_state((float)x[11] + (float)x[12] / 100.0f);
+            } else if (pkt == 0x04) {
+              id(b2_vib).publish_state(x[11] > 0);
+            } else if (pkt == 0x06) {
+              id(b2_btn).publish_state(x[11] > 0);
+            }
+    - mac_address: "${b3_mac}"
+      service_uuid: "5242"
+      then:
+        - lambda: |-
+            if (x.size() < 13) return;
+            id(b3_battery).publish_state(x[1]);
+            uint8_t pkt = x[10];
+            if (pkt == 0x01) {
+              id(b3_temp).publish_state((float)x[11] + (float)x[12] / 100.0f);
+            } else if (pkt == 0x03) {
+              id(b3_hum).publish_state((float)x[11] + (float)x[12] / 100.0f);
+            } else if (pkt == 0x04) {
+              id(b3_vib).publish_state(x[11] > 0);
+            } else if (pkt == 0x06) {
+              id(b3_btn).publish_state(x[11] > 0);
+            }
+    - mac_address: "${b4_mac}"
+      service_uuid: "5242"
+      then:
+        - lambda: |-
+            if (x.size() < 13) return;
+            id(b4_battery).publish_state(x[1]);
+            uint8_t pkt = x[10];
+            if (pkt == 0x01) {
+              id(b4_temp).publish_state((float)x[11] + (float)x[12] / 100.0f);
+            } else if (pkt == 0x03) {
+              id(b4_hum).publish_state((float)x[11] + (float)x[12] / 100.0f);
+            } else if (pkt == 0x04) {
+              id(b4_vib).publish_state(x[11] > 0);
+            } else if (pkt == 0x06) {
+              id(b4_btn).publish_state(x[11] > 0);
+            }
+    - mac_address: "${b5_mac}"
+      service_uuid: "5242"
+      then:
+        - lambda: |-
+            if (x.size() < 13) return;
+            id(b5_battery).publish_state(x[1]);
+            uint8_t pkt = x[10];
+            if (pkt == 0x01) {
+              id(b5_temp).publish_state((float)x[11] + (float)x[12] / 100.0f);
+            } else if (pkt == 0x03) {
+              id(b5_hum).publish_state((float)x[11] + (float)x[12] / 100.0f);
+            } else if (pkt == 0x04) {
+              id(b5_vib).publish_state(x[11] > 0);
+            } else if (pkt == 0x06) {
+              id(b5_btn).publish_state(x[11] > 0);
+            }
+
+bluetooth_proxy:
+  active: true
+
+button:
+  - platform: safe_mode
+    id: button_safe_mode
+    name: Safe Mode Boot
+  - platform: factory_reset
+    id: factory_reset_btn
+    name: Factory reset
