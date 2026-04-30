@@ -182,20 +182,15 @@ class BinCoordinator:
         self._unsub_listeners: list[Any] = []
 
         # --- Soglie RSSI (globali, condivise da tutti i secchi) ---
-        # Specifica: soglia1 < soglia2 (entrambe negative in dBm)
-        # RSSI < soglia_low  → ZONE_UNDEFINED (disperso)
-        # soglia_low <= RSSI < soglia_high → zone_far (zona lontana)
-        # RSSI >= soglia_high → zone_near (zona vicina)
-        # Supporta sia i nuovi nomi (rssi_threshold_low/high) sia i vecchi
-        # (rssi_threshold_min/max) per retrocompatibilità con dati salvati.
-        self._threshold_low: float = float(
-            global_config.get(CONF_RSSI_THRESHOLD_LOW)
-            or global_config.get(CONF_RSSI_THRESHOLD_MAX, -80)
-        )
-        self._threshold_high: float = float(
-            global_config.get(CONF_RSSI_THRESHOLD_HIGH)
-            or global_config.get(CONF_RSSI_THRESHOLD_MIN, -50)
-        )
+        # Specifica: sogliamin < sogliamax (entrambe negative in dBm)
+        # RSSI < threshold_low              → ZONE_UNDEFINED (disperso)
+        # threshold_low <= RSSI < threshold_high → zone_far (zona lontana)
+        # RSSI >= threshold_high            → zone_near (zona vicina)
+        #
+        # _get_global_config in __init__.py risolve già la retrocompatibilità
+        # con le chiavi legacy, quindi qui ci aspettiamo sempre le chiavi nuove.
+        self._threshold_low: float = float(global_config[CONF_RSSI_THRESHOLD_LOW])
+        self._threshold_high: float = float(global_config[CONF_RSSI_THRESHOLD_HIGH])
 
         # Mappatura zone: l'utente sceglie quale zona fisica corrisponde
         # al segnale forte (vicino all'antenna) e quale al segnale medio

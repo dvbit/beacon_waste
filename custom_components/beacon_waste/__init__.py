@@ -26,11 +26,15 @@ from .const import (
     CONF_BINS,
     CONF_RSSI_THRESHOLD_HIGH,
     CONF_RSSI_THRESHOLD_LOW,
+    CONF_RSSI_THRESHOLD_MIN,   # alias legacy (vecchio nome di HIGH)
+    CONF_RSSI_THRESHOLD_MAX,   # alias legacy (vecchio nome di LOW)
     CONF_ZONE_NEAR,
     CONF_ZONE_FAR,
     CONF_TMON_HOME,
     CONF_TMON_PICKUP,
     CONF_TMON_LOST,
+    ZONE_HOME,
+    ZONE_PICKUP,
 )
 from .coordinator import BinCoordinator
 
@@ -45,21 +49,40 @@ ATTR_BIN_NAME = "bin_name"
 def _get_global_config(entry: ConfigEntry) -> dict[str, Any]:
     """Legge la configurazione globale fondendo data e options.
 
-    Le options hanno priorità su data: permettono di sovrascrivere
-    le soglie RSSI e le zone tramite l'options flow senza reinstallare.
+    Le options hanno priorità su data. Gestisce retrocompatibilità:
+    - Chiavi nuove: rssi_threshold_low / rssi_threshold_high
+    - Chiavi legacy (versioni precedenti): rssi_threshold_max / rssi_threshold_min
+      dove max era la soglia bassa (disperso) e min era la soglia alta (vicino).
+
+    Specifica soglie:
+      RSSI < threshold_low              → non_definita
+      threshold_low <= RSSI < threshold_high → zone_far
+      RSSI >= threshold_high            → zone_near
     """
+    data = entry.data
+    opts = entry.options
+
+    # Soglia bassa (sogliamin): nuova chiave o fallback alla chiave legacy "max"
+    threshold_low = (
+        opts.get(CONF_RSSI_THRESHOLD_LOW)
+        or data.get(CONF_RSSI_THRESHOLD_LOW)
+        or data.get(CONF_RSSI_THRESHOLD_MAX, -80)
+    )
+    # Soglia alta (sogliamax): nuova chiave o fallback alla chiave legacy "min"
+    threshold_high = (
+        opts.get(CONF_RSSI_THRESHOLD_HIGH)
+        or data.get(CONF_RSSI_THRESHOLD_HIGH)
+        or data.get(CONF_RSSI_THRESHOLD_MIN, -50)
+    )
+
     return {
-        CONF_RSSI_THRESHOLD_HIGH: entry.options.get(
-            CONF_RSSI_THRESHOLD_HIGH, entry.data[CONF_RSSI_THRESHOLD_HIGH]
-        ),
-        CONF_RSSI_THRESHOLD_LOW: entry.options.get(
-            CONF_RSSI_THRESHOLD_LOW, entry.data[CONF_RSSI_THRESHOLD_LOW]
-        ),
-        CONF_ZONE_NEAR: entry.options.get(CONF_ZONE_NEAR, entry.data[CONF_ZONE_NEAR]),
-        CONF_ZONE_FAR: entry.options.get(CONF_ZONE_FAR, entry.data[CONF_ZONE_FAR]),
-        CONF_TMON_HOME: entry.options.get(CONF_TMON_HOME, entry.data[CONF_TMON_HOME]),
-        CONF_TMON_PICKUP: entry.options.get(CONF_TMON_PICKUP, entry.data[CONF_TMON_PICKUP]),
-        CONF_TMON_LOST: entry.options.get(CONF_TMON_LOST, entry.data[CONF_TMON_LOST]),
+        CONF_RSSI_THRESHOLD_LOW: float(threshold_low),
+        CONF_RSSI_THRESHOLD_HIGH: float(threshold_high),
+        CONF_ZONE_NEAR: opts.get(CONF_ZONE_NEAR, data.get(CONF_ZONE_NEAR, ZONE_HOME)),
+        CONF_ZONE_FAR: opts.get(CONF_ZONE_FAR, data.get(CONF_ZONE_FAR, ZONE_PICKUP)),
+        CONF_TMON_HOME: float(opts.get(CONF_TMON_HOME, data.get(CONF_TMON_HOME, 60))),
+        CONF_TMON_PICKUP: float(opts.get(CONF_TMON_PICKUP, data.get(CONF_TMON_PICKUP, 60))),
+        CONF_TMON_LOST: float(opts.get(CONF_TMON_LOST, data.get(CONF_TMON_LOST, 120))),
     }
 
 
