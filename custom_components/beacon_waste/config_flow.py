@@ -24,6 +24,8 @@ import voluptuous as vol
 
 from homeassistant import config_entries
 from homeassistant.helpers.selector import (
+    EntitySelector,
+    EntitySelectorConfig,
     NumberSelector,
     NumberSelectorConfig,
     NumberSelectorMode,
@@ -44,6 +46,10 @@ from .const import (
     CONF_BEACON_MAC,
     CONF_PICKUP_DAYS,
     CONF_PICKUP_TIME_START,
+    CONF_PICKUP_MODE,
+    CONF_PICKUP_BOOLEAN_ENTITY,
+    PICKUP_MODE_CALENDAR,
+    PICKUP_MODE_BOOLEAN,
     CONF_RSSI_THRESHOLD_MIN,
     CONF_RSSI_THRESHOLD_MAX,
     CONF_ZONE_NEAR,
@@ -72,6 +78,12 @@ BEACON_RSSI_PATTERN = re.compile(
 ZONE_OPTIONS = [
     {"value": ZONE_HOME, "label": "Casa"},
     {"value": ZONE_PICKUP, "label": "Prelievo"},
+]
+
+# Opzioni per la modalità di schedulazione prelievo
+PICKUP_MODE_OPTIONS = [
+    {"value": PICKUP_MODE_CALENDAR, "label": "Calendario (giorni + orario)"},
+    {"value": PICKUP_MODE_BOOLEAN, "label": "Entità booleana esterna"},
 ]
 
 
@@ -286,46 +298,52 @@ class BeaconWasteConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         Per ogni beacon chiede:
         - Nome tipologia spazzatura (preletto dal sensore _name)
-        - Giorni di prelievo (checkbox per ogni giorno)
-        - Orario inizio esposizione (sera prima del prelievo)
+        - Modalità prelievo: calendario (giorni + orario) o booleana (entità esterna)
+        - Se calendario: giorni della settimana + orario inizio esposizione
+        - Se booleana: entity_id di un binary_sensor/input_boolean
 
         Alla fine dell'ultimo beacon salva la config entry completa.
         """
         errors: dict[str, str] = {}
 
         if user_input is not None:
-            # Raccogli i giorni selezionati dalle checkbox
-            pickup_days = []
-            for day in DAYS_OF_WEEK:
-                if user_input.get(f"day_{day}", False):
-                    pickup_days.append(day)
+            pickup_mode = user_input.get(CONF_PICKUP_MODE, PICKUP_MODE_CALENDAR)
 
-            if not pickup_days:
-                errors["base"] = "no_pickup_days"
+            if pickup_mode == PICKUP_MODE_CALENDAR:
+                # Modalità calendario: valida che almeno un giorno sia selezionato
+                pickup_days = [
+                    day for day in DAYS_OF_WEEK
+                    if user_input.get(f"day_{day}", False)
+                ]
+                if not pickup_days:
+                    errors["base"] = "no_pickup_days"
+            else:
+                # Modalità booleana: valida che l'entity_id sia stato fornito
+                pickup_days = []
+                if not user_input.get(CONF_PICKUP_BOOLEAN_ENTITY):
+                    errors["base"] = "no_boolean_entity"
 
             if not errors:
                 mac = self._selected_macs[self._current_bin]
                 info = self._discovered_beacons[mac]
 
-                # Salva la configurazione del secchio corrente
                 bin_config = {
                     CONF_BIN_NAME: user_input[CONF_BIN_NAME],
                     CONF_BEACON_MAC: mac,
-                    # Il prefisso serve per ricostruire gli entity_id
-                    # dei sensori del beacon (es. "ble_proxy")
                     "entity_prefix": info["prefix"],
+                    CONF_PICKUP_MODE: pickup_mode,
+                    # Campi specifici modalità calendario
                     CONF_PICKUP_DAYS: pickup_days,
-                    CONF_PICKUP_TIME_START: user_input[CONF_PICKUP_TIME_START],
+                    CONF_PICKUP_TIME_START: user_input.get(CONF_PICKUP_TIME_START, "20:00"),
+                    # Campi specifici modalità booleana
+                    CONF_PICKUP_BOOLEAN_ENTITY: user_input.get(CONF_PICKUP_BOOLEAN_ENTITY, ""),
                 }
                 self._bins.append(bin_config)
                 self._current_bin += 1
 
-                # Se ci sono altri beacon da configurare, ripeti lo step
                 if self._current_bin < len(self._selected_macs):
                     return await self.async_step_bin()
 
-                # Tutti configurati: salva la config entry con
-                # configurazione globale + lista secchi
                 return self.async_create_entry(
                     title="Beacon Waste Collection",
                     data={
@@ -346,6 +364,16 @@ class BeaconWasteConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 vol.Required(CONF_BIN_NAME, default=default_name): TextSelector(
                     TextSelectorConfig(type="text")
                 ),
+                # Modalità di schedulazione prelievo
+                vol.Required(
+                    CONF_PICKUP_MODE, default=PICKUP_MODE_CALENDAR
+                ): SelectSelector(
+                    SelectSelectorConfig(
+                        options=PICKUP_MODE_OPTIONS,
+                        mode=SelectSelectorMode.LIST,
+                    )
+                ),
+                # --- Campi modalità CALENDARIO ---
                 # Checkbox giorni di prelievo (L M M G V S D)
                 vol.Optional("day_mon", default=False): BooleanSelector(),
                 vol.Optional("day_tue", default=False): BooleanSelector(),
@@ -355,8 +383,15 @@ class BeaconWasteConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 vol.Optional("day_sat", default=False): BooleanSelector(),
                 vol.Optional("day_sun", default=False): BooleanSelector(),
                 # Orario esposizione: da quest'ora la sera PRIMA del prelievo
-                vol.Required(CONF_PICKUP_TIME_START): TimeSelector(
+                vol.Optional(CONF_PICKUP_TIME_START, default="20:00"): TimeSelector(
                     TimeSelectorConfig()
+                ),
+                # --- Campi modalità BOOLEANA ---
+                # Entity ID del binary_sensor o input_boolean esterno
+                vol.Optional(CONF_PICKUP_BOOLEAN_ENTITY): EntitySelector(
+                    EntitySelectorConfig(
+                        domain=["binary_sensor", "input_boolean"]
+                    )
                 ),
             }
         )

@@ -27,6 +27,7 @@
                 "description": "Beacon : {beacon_name} (MAC : {beacon_mac}). Configurez le nom, les jours et l'heure d'exposition.",
                 "data": {
                     "bin_name": "Nom du type de déchet",
+                    "pickup_mode": "Mode de planification de collecte",
                     "day_mon": "Lundi",
                     "day_tue": "Mardi",
                     "day_wed": "Mercredi",
@@ -34,18 +35,22 @@
                     "day_fri": "Vendredi",
                     "day_sat": "Samedi",
                     "day_sun": "Dimanche",
-                    "pickup_time_start": "Heure de début d'exposition (veille au soir)"
+                    "pickup_time_start": "Heure de début d'exposition (veille au soir)",
+                    "pickup_boolean_entity": "Entité booléenne de collecte"
                 },
                 "data_description": {
-                    "pickup_time_start": "Heure à partir de laquelle la poubelle peut être exposée la veille du jour de collecte (ex. 20:00)"
+                    "pickup_mode": "Choisissez 'Calendrier' pour utiliser les jours de la semaine et l'heure. Choisissez 'Entité booléenne' pour utiliser un binary_sensor ou input_boolean externe.",
+                    "pickup_time_start": "Heure à partir de laquelle la poubelle peut être exposée la veille du jour de collecte (ex. 20:00)",
+                    "pickup_boolean_entity": "Sélectionnez le binary_sensor ou input_boolean qui indique si la poubelle doit être exposée."
                 }
             }
         },
         "error": {
-            "invalid_rssi_thresholds": "Le seuil minimum doit être supérieur au maximum (plus proche de 0 = signal plus fort).",
+            "invalid_rssi_thresholds": "Le seuil minimum doit être supérieur au maximum.",
             "no_pickup_days": "Sélectionnez au moins un jour de collecte.",
             "same_zone_assignment": "Les deux zones doivent être différentes.",
-            "no_beacons_selected": "Sélectionnez au moins un beacon à surveiller."
+            "no_beacons_selected": "Sélectionnez au moins un beacon.",
+            "no_boolean_entity": "Sélectionnez une entité booléenne pour le mode booléen."
         },
         "abort": {
             "no_beacons_found": "Aucun beacon trouvé. Vérifiez que les capteurs ESPHome sont actifs avec le modèle sensor.*_XXXXXXXXXXXX_rssi."

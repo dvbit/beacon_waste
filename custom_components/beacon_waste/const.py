@@ -30,6 +30,15 @@ CONF_PICKUP_DAYS = "pickup_days"
 # Orario (HH:MM) a partire dal quale il secchio può essere esposto
 # la sera PRIMA del giorno di prelievo
 CONF_PICKUP_TIME_START = "pickup_time_start"
+# Modalità di schedulazione del prelievo
+CONF_PICKUP_MODE = "pickup_mode"
+# Entity ID di un binary_sensor/input_boolean esterno che indica se il secchio
+# deve essere esposto (usato in modalità PICKUP_MODE_BOOLEAN)
+CONF_PICKUP_BOOLEAN_ENTITY = "pickup_boolean_entity"
+
+# Valori per CONF_PICKUP_MODE
+PICKUP_MODE_CALENDAR = "calendar"  # Giorni della settimana + orario
+PICKUP_MODE_BOOLEAN = "boolean"    # Entità booleana esterna
 # Soglia RSSI "vicina": segnale sopra questo valore = zona vicina all'antenna
 # Valore negativo in dBm, più vicino a 0 = segnale più forte (es. -50)
 CONF_RSSI_THRESHOLD_MIN = "rssi_threshold_min"

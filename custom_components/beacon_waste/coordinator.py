@@ -46,6 +46,10 @@ from .const import (
     CONF_BEACON_MAC,
     CONF_PICKUP_DAYS,
     CONF_PICKUP_TIME_START,
+    CONF_PICKUP_MODE,
+    CONF_PICKUP_BOOLEAN_ENTITY,
+    PICKUP_MODE_CALENDAR,
+    PICKUP_MODE_BOOLEAN,
     CONF_RSSI_THRESHOLD_MIN,
     CONF_RSSI_THRESHOLD_MAX,
     CONF_ZONE_NEAR,
@@ -189,14 +193,19 @@ class BinCoordinator:
         self._tmon_pickup: float = float(global_config[CONF_TMON_PICKUP])
         self._tmon_lost: float = float(global_config[CONF_TMON_LOST])
 
-        # --- Schedulazione prelievo (per-secchio) ---
-        # Lista dei weekday() in cui avviene il prelievo
+        # --- Modalità e schedulazione prelievo (per-secchio) ---
+        # Può essere PICKUP_MODE_CALENDAR o PICKUP_MODE_BOOLEAN
+        self._pickup_mode: str = bin_config.get(CONF_PICKUP_MODE, PICKUP_MODE_CALENDAR)
+
+        # Modalità CALENDARIO: lista dei weekday() e orario
         self._pickup_days: list[int] = [
-            DAY_MAP[d] for d in bin_config[CONF_PICKUP_DAYS]
+            DAY_MAP[d] for d in bin_config.get(CONF_PICKUP_DAYS, [])
         ]
-        # Orario HH:MM a partire dal quale il secchio è esponibile
-        # (la sera PRIMA del giorno di prelievo)
-        self._pickup_time_start: str = bin_config[CONF_PICKUP_TIME_START]
+        # Orario HH:MM da cui il secchio è esponibile la sera PRIMA del prelievo
+        self._pickup_time_start: str = bin_config.get(CONF_PICKUP_TIME_START, "20:00")
+
+        # Modalità BOOLEANA: entity_id del binary_sensor/input_boolean esterno
+        self._pickup_boolean_entity: str = bin_config.get(CONF_PICKUP_BOOLEAN_ENTITY, "")
 
     # --- Proprietà pubbliche per le entità ---
 
@@ -248,6 +257,7 @@ class BinCoordinator:
         - Listener su RSSI per il tracciamento zona
         - Listener su vibrazione per rilevare uso e raccolta
         - Listener su pulsante per il reset stato
+        - Listener su entità booleana (se modalità BOOLEAN)
         - Timer periodico (10s) per debounce e stato esponibile
         """
         self._unsub_listeners.append(
@@ -268,9 +278,23 @@ class BinCoordinator:
             )
         )
 
+        # In modalità BOOLEAN, ascolta i cambi dell'entità esterna
+        # per aggiornare immediatamente lo stato esponibile
+        if (
+            self._pickup_mode == PICKUP_MODE_BOOLEAN
+            and self._pickup_boolean_entity
+        ):
+            self._unsub_listeners.append(
+                async_track_state_change_event(
+                    self.hass,
+                    [self._pickup_boolean_entity],
+                    self._handle_boolean_change,
+                )
+            )
+
         # Check periodico ogni 10 secondi per:
         # 1. Verificare se il debounce zona è completato
-        # 2. Aggiornare lo stato "esponibile" in base all'orario
+        # 2. Aggiornare lo stato "esponibile" (modalità calendario)
         self._unsub_listeners.append(
             async_track_time_interval(
                 self.hass, self._periodic_check, timedelta(seconds=10)
@@ -448,6 +472,33 @@ class BinCoordinator:
 
         self._notify_update()
 
+    @callback
+    def _handle_boolean_change(self, event: Event) -> None:
+        """Gestisce il cambio dell'entità booleana esterna (modalità BOOLEAN).
+
+        Quando l'entità esterna cambia stato (on/off), aggiorna immediatamente
+        lo stato "esponibile" del secchio senza aspettare il check periodico.
+
+        Questo permette di integrare qualsiasi sorgente esterna:
+        - input_boolean impostato manualmente
+        - binary_sensor da calendario (es. garbage_collection integration)
+        - binary_sensor da automazione con logica personalizzata
+        """
+        new_state = event.data.get("new_state")
+        if new_state is None or new_state.state in ("unknown", "unavailable"):
+            return
+
+        old_exposable = self.is_exposable
+        self.is_exposable = self._check_exposable()
+
+        if self.is_exposable != old_exposable:
+            _LOGGER.debug(
+                "Bin '%s': boolean entity changed, exposable=%s",
+                self.name,
+                self.is_exposable,
+            )
+            self._notify_update()
+
     # --- Check periodico ---
 
     @callback
@@ -530,13 +581,41 @@ class BinCoordinator:
     def _check_exposable(self) -> bool:
         """Verifica se il secchio è esponibile.
 
-        Condizioni (entrambe devono essere vere):
-        1. Il secchio NON è vuoto (c'è qualcosa da raccogliere)
-        2. Siamo nella finestra temporale di esposizione
+        Condizione comune: il secchio NON deve essere vuoto.
+
+        La seconda condizione dipende dalla modalità configurata:
+        - PICKUP_MODE_CALENDAR: siamo nella finestra temporale (sera prima + giorno di prelievo)
+        - PICKUP_MODE_BOOLEAN: l'entità booleana esterna è "on"
         """
         if self.is_empty:
             return False
+
+        if self._pickup_mode == PICKUP_MODE_BOOLEAN:
+            return self._is_boolean_exposable()
         return self._is_in_pickup_window()
+
+    def _is_boolean_exposable(self) -> bool:
+        """Verifica lo stato dell'entità booleana esterna.
+
+        Legge lo stato corrente dell'entità configurata (binary_sensor
+        o input_boolean). Se l'entità è "on", il secchio è esponibile.
+
+        Returns:
+            True se l'entità è "on", False altrimenti o se non disponibile.
+        """
+        if not self._pickup_boolean_entity:
+            return False
+
+        state = self.hass.states.get(self._pickup_boolean_entity)
+        if state is None or state.state in ("unknown", "unavailable"):
+            _LOGGER.warning(
+                "Bin '%s': boolean entity '%s' unavailable",
+                self.name,
+                self._pickup_boolean_entity,
+            )
+            return False
+
+        return state.state == "on"
 
     def _is_in_pickup_window(self) -> bool:
         """Verifica se siamo nella finestra di esposizione.

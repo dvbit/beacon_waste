@@ -27,6 +27,7 @@
                 "description": "Beacon: {beacon_name} (MAC: {beacon_mac}). Configura nombre, días y horario de exposición.",
                 "data": {
                     "bin_name": "Nombre del tipo de residuo",
+                    "pickup_mode": "Modo de programación de recogida",
                     "day_mon": "Lunes",
                     "day_tue": "Martes",
                     "day_wed": "Miércoles",
@@ -34,18 +35,22 @@
                     "day_fri": "Viernes",
                     "day_sat": "Sábado",
                     "day_sun": "Domingo",
-                    "pickup_time_start": "Hora de inicio exposición (noche anterior)"
+                    "pickup_time_start": "Hora de inicio exposición (noche anterior)",
+                    "pickup_boolean_entity": "Entidad booleana de recogida"
                 },
                 "data_description": {
-                    "pickup_time_start": "Hora a partir de la cual el cubo puede exponerse la noche anterior al día de recogida (ej. 20:00)"
+                    "pickup_mode": "Elige 'Calendario' para usar días de la semana y horario. Elige 'Entidad booleana' para usar un binary_sensor o input_boolean externo.",
+                    "pickup_time_start": "Hora a partir de la cual el cubo puede exponerse la noche anterior al día de recogida (ej. 20:00)",
+                    "pickup_boolean_entity": "Selecciona el binary_sensor o input_boolean que indica si el cubo debe exponerse."
                 }
             }
         },
         "error": {
-            "invalid_rssi_thresholds": "El umbral mínimo debe ser mayor que el máximo (más cercano a 0 = señal más fuerte).",
+            "invalid_rssi_thresholds": "El umbral mínimo debe ser mayor que el máximo.",
             "no_pickup_days": "Selecciona al menos un día de recogida.",
-            "same_zone_assignment": "Las dos zonas deben ser diferentes entre sí.",
-            "no_beacons_selected": "Selecciona al menos un beacon a monitorizar."
+            "same_zone_assignment": "Las dos zonas deben ser diferentes.",
+            "no_beacons_selected": "Selecciona al menos un beacon.",
+            "no_boolean_entity": "Selecciona una entidad booleana para el modo booleano."
         },
         "abort": {
             "no_beacons_found": "No se encontraron beacons. Verifica que los sensores ESPHome estén activos con el patrón sensor.*_XXXXXXXXXXXX_rssi."

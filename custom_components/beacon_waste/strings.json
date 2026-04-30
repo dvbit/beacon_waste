@@ -27,6 +27,7 @@
                 "description": "Beacon: {beacon_name} (MAC: {beacon_mac}). Configura nome, giorni e orario di esposizione.",
                 "data": {
                     "bin_name": "Nome tipologia spazzatura",
+                    "pickup_mode": "Modalità schedulazione prelievo",
                     "day_mon": "Lunedì",
                     "day_tue": "Martedì",
                     "day_wed": "Mercoledì",
@@ -34,10 +35,13 @@
                     "day_fri": "Venerdì",
                     "day_sat": "Sabato",
                     "day_sun": "Domenica",
-                    "pickup_time_start": "Orario inizio esposizione (sera precedente)"
+                    "pickup_time_start": "Orario inizio esposizione (sera precedente)",
+                    "pickup_boolean_entity": "Entità booleana prelievo"
                 },
                 "data_description": {
-                    "pickup_time_start": "Ora a partire dalla quale il secchio può essere esposto la sera prima del giorno di prelievo (es. 20:00)"
+                    "pickup_mode": "Scegli 'Calendario' per usare giorni della settimana e orario. Scegli 'Entità booleana' per usare un binary_sensor o input_boolean esterno (es. da calendario custom o automazione).",
+                    "pickup_time_start": "Ora a partire dalla quale il secchio può essere esposto la sera prima del giorno di prelievo (es. 20:00)",
+                    "pickup_boolean_entity": "Seleziona il binary_sensor o input_boolean che indica se il secchio deve essere esposto. Quando è 'on', il secchio è esponibile."
                 }
             }
         },
@@ -45,7 +49,8 @@
             "invalid_rssi_thresholds": "Soglia minima deve essere maggiore della soglia massima (più vicino a 0 = segnale più forte).",
             "no_pickup_days": "Seleziona almeno un giorno di prelievo.",
             "same_zone_assignment": "Le due zone devono essere diverse tra loro.",
-            "no_beacons_selected": "Seleziona almeno un beacon da monitorare."
+            "no_beacons_selected": "Seleziona almeno un beacon da monitorare.",
+            "no_boolean_entity": "Seleziona un'entità booleana per la modalità booleana."
         },
         "abort": {
             "no_beacons_found": "Nessun beacon trovato. Verifica che i sensori ESPHome siano attivi con il pattern sensor.*_XXXXXXXXXXXX_rssi."

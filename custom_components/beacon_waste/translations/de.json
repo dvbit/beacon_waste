@@ -27,6 +27,7 @@
                 "description": "Beacon: {beacon_name} (MAC: {beacon_mac}). Name, Abfuhrtage und Bereitstellungszeit konfigurieren.",
                 "data": {
                     "bin_name": "Name der Abfallart",
+                    "pickup_mode": "Abfuhr-Planungsmodus",
                     "day_mon": "Montag",
                     "day_tue": "Dienstag",
                     "day_wed": "Mittwoch",
@@ -34,18 +35,22 @@
                     "day_fri": "Freitag",
                     "day_sat": "Samstag",
                     "day_sun": "Sonntag",
-                    "pickup_time_start": "Bereitstellungszeit (Vorabend)"
+                    "pickup_time_start": "Bereitstellungszeit (Vorabend)",
+                    "pickup_boolean_entity": "Boolesche Entität für Abholung"
                 },
                 "data_description": {
-                    "pickup_time_start": "Uhrzeit, ab der die Tonne am Vorabend des Abfuhrtages bereitgestellt werden kann (z.B. 20:00)"
+                    "pickup_mode": "Wählen Sie 'Kalender' für Wochentage und Uhrzeit. Wählen Sie 'Boolesche Entität' für einen externen binary_sensor oder input_boolean.",
+                    "pickup_time_start": "Uhrzeit, ab der die Tonne am Vorabend des Abfuhrtages bereitgestellt werden kann (z.B. 20:00)",
+                    "pickup_boolean_entity": "Wählen Sie den binary_sensor oder input_boolean, der angibt, ob die Tonne bereitgestellt werden soll."
                 }
             }
         },
         "error": {
-            "invalid_rssi_thresholds": "Der Mindestschwellenwert muss größer als der Höchstwert sein (näher an 0 = stärkeres Signal).",
+            "invalid_rssi_thresholds": "Der Mindestschwellenwert muss größer als der Höchstwert sein.",
             "no_pickup_days": "Wählen Sie mindestens einen Abfuhrtag.",
             "same_zone_assignment": "Die beiden Zonen müssen unterschiedlich sein.",
-            "no_beacons_selected": "Wählen Sie mindestens einen Beacon zur Überwachung."
+            "no_beacons_selected": "Wählen Sie mindestens einen Beacon.",
+            "no_boolean_entity": "Wählen Sie eine boolesche Entität für den booleschen Modus."
         },
         "abort": {
             "no_beacons_found": "Keine Beacons gefunden. Überprüfen Sie, ob die ESPHome-Sensoren mit dem Muster sensor.*_XXXXXXXXXXXX_rssi aktiv sind."

@@ -27,6 +27,7 @@
                 "description": "Beacon: {beacon_name} (MAC: {beacon_mac}). Configure name, pickup days and exposure time.",
                 "data": {
                     "bin_name": "Waste type name",
+                    "pickup_mode": "Pickup scheduling mode",
                     "day_mon": "Monday",
                     "day_tue": "Tuesday",
                     "day_wed": "Wednesday",
@@ -34,10 +35,13 @@
                     "day_fri": "Friday",
                     "day_sat": "Saturday",
                     "day_sun": "Sunday",
-                    "pickup_time_start": "Exposure start time (evening before)"
+                    "pickup_time_start": "Exposure start time (evening before)",
+                    "pickup_boolean_entity": "Pickup boolean entity"
                 },
                 "data_description": {
-                    "pickup_time_start": "Time from which the bin can be exposed the evening before pickup day (e.g. 20:00)"
+                    "pickup_mode": "Choose 'Calendar' to use days of the week and time. Choose 'Boolean entity' to use an external binary_sensor or input_boolean (e.g. from a custom calendar or automation).",
+                    "pickup_time_start": "Time from which the bin can be put out the evening before pickup day (e.g. 20:00)",
+                    "pickup_boolean_entity": "Select the binary_sensor or input_boolean that indicates whether the bin should be exposed. When 'on', the bin is exposable."
                 }
             }
         },
@@ -45,7 +49,8 @@
             "invalid_rssi_thresholds": "Min threshold must be greater than max threshold (closer to 0 = stronger signal).",
             "no_pickup_days": "Select at least one pickup day.",
             "same_zone_assignment": "The two zones must be different from each other.",
-            "no_beacons_selected": "Select at least one beacon to monitor."
+            "no_beacons_selected": "Select at least one beacon to monitor.",
+            "no_boolean_entity": "Select a boolean entity for boolean mode."
         },
         "abort": {
             "no_beacons_found": "No beacons found. Verify ESPHome sensors are active with pattern sensor.*_XXXXXXXXXXXX_rssi."
