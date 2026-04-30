@@ -14,7 +14,7 @@ DOMAIN = "beacon_waste"
 
 # Piattaforme entità che l'integrazione registra in HA.
 # Ogni piattaforma corrisponde a un file .py nella cartella dell'integrazione.
-PLATFORMS = ["select", "binary_sensor", "sensor"]
+PLATFORMS = ["select", "binary_sensor", "sensor", "button"]
 
 # --- Chiavi di configurazione ---
 # Usate nel config flow per raccogliere e salvare i dati dell'utente.

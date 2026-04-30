@@ -311,6 +311,25 @@ class BinCoordinator:
             unsub()
         self._unsub_listeners.clear()
 
+    def reset_state(self) -> None:
+        """Resetta lo stato del secchio come dopo lo svuotamento.
+
+        Equivalente alla pressione del pulsante fisico sul beacon.
+        Chiamato dal servizio beacon_waste.reset_bin e dal ButtonEntity.
+
+        Effetto:
+        - vuoto = True (il secchio è stato svuotato)
+        - in_uso = True (pronto per essere riempito di nuovo)
+        - in_attesa_prelievo = False
+        - contatore immissioni = 0
+        """
+        self.is_empty = True
+        self.is_in_use = True
+        self.is_awaiting_pickup = False
+        self.immission_count = 0
+        _LOGGER.debug("Bin '%s': state reset (vuoto, in_uso, counter=0)", self.name)
+        self._notify_update()
+
     # --- Logica zone RSSI ---
 
     def _get_rssi_zone(self, rssi: float) -> str:
@@ -464,13 +483,7 @@ class BinCoordinator:
             return
 
         _LOGGER.debug("Button pressed for bin '%s' - resetting state", self.name)
-
-        self.is_empty = True
-        self.is_in_use = True
-        self.is_awaiting_pickup = False
-        self.immission_count = 0
-
-        self._notify_update()
+        self.reset_state()
 
     @callback
     def _handle_boolean_change(self, event: Event) -> None:

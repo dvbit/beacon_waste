@@ -1,18 +1,15 @@
 """
-Config flow per Beacon Waste Collection.
+Config flow e Options flow per Beacon Waste Collection.
 
-Gestisce la configurazione dell'integrazione tramite UI in due fasi:
+CONFIG FLOW (prima configurazione):
+  Step 1 - user:        auto-discovery beacon + parametri globali (soglie, zone, debounce)
+  Step 2 - bin:         nome secchio + scelta modalità prelievo
+  Step 3a - bin_calendar: giorni prelievo (multi-select) + orario esposizione
+  Step 3b - bin_boolean:  selezione entità booleana esterna
 
-Step 1 (async_step_user):
-    - Auto-discovery: scansiona tutte le entità sensor.*_XXXXXXXXXXXX_rssi
-      per trovare i beacon ESPHome presenti in HA.
-    - Mostra un multi-select con i beacon trovati nel formato "Nome (MAC)".
-    - Raccoglie i parametri globali: soglie RSSI, mappatura zone, debounce.
-
-Step 2..N (async_step_bin):
-    - Per ogni beacon selezionato chiede: nome tipologia spazzatura,
-      giorni di prelievo (checkbox L-D), orario inizio esposizione.
-    - Il nome è preletto dal sensore _name del beacon.
+OPTIONS FLOW (riconfigurazione):
+  Permette di modificare soglie RSSI, zone e debounce senza reinstallare.
+  Accessibile da Impostazioni → Dispositivi e servizi → Configura.
 """
 from __future__ import annotations
 
@@ -36,7 +33,6 @@ from homeassistant.helpers.selector import (
     TextSelectorConfig,
     TimeSelector,
     TimeSelectorConfig,
-    BooleanSelector,
 )
 
 from .const import (
@@ -66,137 +62,185 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-# Pattern regex per individuare le entità RSSI dei beacon ESPHome.
-# Cattura due gruppi:
-#   gruppo 1: prefisso (es. "ble_proxy" in "sensor.ble_proxy_aabbccddeeff_rssi")
-#   gruppo 2: MAC address a 12 caratteri hex (es. "aabbccddeeff")
+# Regex per individuare le entità RSSI dei beacon ESPHome.
+# Cattura: gruppo 1 = prefisso, gruppo 2 = MAC a 12 caratteri hex
 BEACON_RSSI_PATTERN = re.compile(
     r"^sensor\.(.+)_([0-9a-fA-F]{12})_rssi$"
 )
 
-# Opzioni per il selettore di zona nel config flow
+# Opzioni selettore zona
 ZONE_OPTIONS = [
     {"value": ZONE_HOME, "label": "Casa"},
     {"value": ZONE_PICKUP, "label": "Prelievo"},
 ]
 
-# Opzioni per la modalità di schedulazione prelievo
+# Opzioni modalità schedulazione prelievo
 PICKUP_MODE_OPTIONS = [
     {"value": PICKUP_MODE_CALENDAR, "label": "Calendario (giorni + orario)"},
     {"value": PICKUP_MODE_BOOLEAN, "label": "Entità booleana esterna"},
+]
+
+# Opzioni multi-select giorni della settimana.
+# Ogni opzione ha value = chiave interna, label = nome leggibile.
+# Il SelectSelector con multiple=True restituisce una lista di value selezionati.
+DAY_OPTIONS = [
+    {"value": "mon", "label": "Lunedì"},
+    {"value": "tue", "label": "Martedì"},
+    {"value": "wed", "label": "Mercoledì"},
+    {"value": "thu", "label": "Giovedì"},
+    {"value": "fri", "label": "Venerdì"},
+    {"value": "sat", "label": "Sabato"},
+    {"value": "sun", "label": "Domenica"},
 ]
 
 
 def _discover_beacons(hass) -> dict[str, dict[str, str]]:
     """Scansiona tutte le entità sensor per trovare beacon ESPHome.
 
-    Cerca entità che matchano il pattern sensor.*_XXXXXXXXXXXX_rssi
-    dove XXXXXXXXXXXX è un MAC address BLE a 12 caratteri hex.
-
-    Per ogni beacon trovato, tenta di leggere il nome dal sensore
-    corrispondente sensor.*_XXXXXXXXXXXX_name.
+    Cerca entità che matchano sensor.*_XXXXXXXXXXXX_rssi e per ciascuna
+    tenta di leggere il nome dal sensore sensor.*_XXXXXXXXXXXX_name.
 
     Returns:
-        Dict con chiave MAC (lowercase) e valore dict con:
-        - prefix: prefisso dell'entity_id (es. "ble_proxy")
-        - mac: MAC address lowercase
-        - name: nome letto dal sensore _name, oppure il MAC come fallback
+        Dict {mac: {prefix, mac, name}} con tutti i beacon trovati.
     """
     beacons: dict[str, dict[str, str]] = {}
-    states = hass.states.async_all("sensor")
-
-    for state in states:
+    for state in hass.states.async_all("sensor"):
         match = BEACON_RSSI_PATTERN.match(state.entity_id)
         if match:
             prefix = match.group(1)
             mac = match.group(2).lower()
-
-            # Tenta di leggere il nome dal sensore *_name del beacon
-            name_entity_id = f"sensor.{prefix}_{mac}_{SUFFIX_NAME}"
-            name_state = hass.states.get(name_entity_id)
+            name_state = hass.states.get(f"sensor.{prefix}_{mac}_{SUFFIX_NAME}")
             beacon_name = (
                 name_state.state
                 if name_state and name_state.state not in ("unknown", "unavailable", "")
                 else mac
             )
-
-            beacons[mac] = {
-                "prefix": prefix,
-                "mac": mac,
-                "name": beacon_name,
-            }
-
+            beacons[mac] = {"prefix": prefix, "mac": mac, "name": beacon_name}
     return beacons
 
 
+def _global_schema(current: dict[str, Any] | None = None) -> vol.Schema:
+    """Costruisce lo schema per i parametri globali (usato da config e options flow)."""
+    c = current or {}
+    return vol.Schema(
+        {
+            vol.Required(
+                CONF_RSSI_THRESHOLD_MIN,
+                default=c.get(CONF_RSSI_THRESHOLD_MIN, -50),
+            ): NumberSelector(NumberSelectorConfig(
+                min=-100, max=0, step=1, mode=NumberSelectorMode.BOX,
+                unit_of_measurement="dBm",
+            )),
+            vol.Required(
+                CONF_RSSI_THRESHOLD_MAX,
+                default=c.get(CONF_RSSI_THRESHOLD_MAX, -80),
+            ): NumberSelector(NumberSelectorConfig(
+                min=-100, max=0, step=1, mode=NumberSelectorMode.BOX,
+                unit_of_measurement="dBm",
+            )),
+            vol.Required(
+                CONF_ZONE_NEAR,
+                default=c.get(CONF_ZONE_NEAR, ZONE_HOME),
+            ): SelectSelector(SelectSelectorConfig(
+                options=ZONE_OPTIONS, mode=SelectSelectorMode.DROPDOWN,
+            )),
+            vol.Required(
+                CONF_ZONE_FAR,
+                default=c.get(CONF_ZONE_FAR, ZONE_PICKUP),
+            ): SelectSelector(SelectSelectorConfig(
+                options=ZONE_OPTIONS, mode=SelectSelectorMode.DROPDOWN,
+            )),
+            vol.Required(
+                CONF_TMON_HOME,
+                default=c.get(CONF_TMON_HOME, 60),
+            ): NumberSelector(NumberSelectorConfig(
+                min=0, max=3600, step=1, mode=NumberSelectorMode.BOX,
+                unit_of_measurement="s",
+            )),
+            vol.Required(
+                CONF_TMON_PICKUP,
+                default=c.get(CONF_TMON_PICKUP, 60),
+            ): NumberSelector(NumberSelectorConfig(
+                min=0, max=3600, step=1, mode=NumberSelectorMode.BOX,
+                unit_of_measurement="s",
+            )),
+            vol.Required(
+                CONF_TMON_LOST,
+                default=c.get(CONF_TMON_LOST, 120),
+            ): NumberSelector(NumberSelectorConfig(
+                min=0, max=3600, step=1, mode=NumberSelectorMode.BOX,
+                unit_of_measurement="s",
+            )),
+        }
+    )
+
+
+def _validate_global(user_input: dict[str, Any]) -> dict[str, str]:
+    """Valida i parametri globali. Restituisce dict di errori (vuoto = ok)."""
+    errors: dict[str, str] = {}
+    if not (user_input[CONF_RSSI_THRESHOLD_MIN] > user_input[CONF_RSSI_THRESHOLD_MAX]):
+        errors["base"] = "invalid_rssi_thresholds"
+    if user_input[CONF_ZONE_NEAR] == user_input[CONF_ZONE_FAR]:
+        errors["base"] = "same_zone_assignment"
+    return errors
+
+
+# ---------------------------------------------------------------------------
+# Config flow (prima configurazione)
+# ---------------------------------------------------------------------------
+
 class BeaconWasteConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Gestisce il config flow UI dell'integrazione."""
+    """Gestisce il config flow UI per la prima configurazione dell'integrazione."""
 
     VERSION = 1
 
     def __init__(self) -> None:
         """Inizializza le variabili di stato del flow multi-step."""
-        # Beacon trovati dall'auto-discovery {mac: {prefix, mac, name}}
         self._discovered_beacons: dict[str, dict[str, str]] = {}
-        # Lista dei MAC selezionati dall'utente
         self._selected_macs: list[str] = []
-        # Configurazione globale (soglie, zone, debounce)
         self._global_config: dict[str, Any] = {}
-        # Lista delle configurazioni per-secchio accumulate
         self._bins: list[dict[str, Any]] = []
-        # Indice del secchio attualmente in configurazione
         self._current_bin: int = 0
-        # Dati parziali del secchio corrente (nome + modalità), salvati da async_step_bin
-        # prima di passare a async_step_bin_calendar o async_step_bin_boolean
+        # Dati parziali del secchio corrente (nome + modalità), salvati da step bin
+        # prima di passare a bin_calendar o bin_boolean
         self._current_bin_partial: dict[str, Any] = {}
+
+    @staticmethod
+    def async_get_options_flow(
+        config_entry: config_entries.ConfigEntry,
+    ) -> config_entries.OptionsFlow:
+        """Registra l'options flow per la riconfigurazione dei parametri globali."""
+        return BeaconWasteOptionsFlow(config_entry)
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.ConfigFlowResult:
-        """Step 1: auto-discovery dei beacon e configurazione globale.
+        """Step 1: auto-discovery beacon + parametri globali condivisi.
 
         Mostra:
         - Multi-select con tutti i beacon trovati (Nome + MAC)
-        - Soglie RSSI globali (min e max)
-        - Assegnazione zone (quale zona per segnale forte/medio)
-        - Tempi di debounce per ogni zona
+        - Soglie RSSI (min/max), assegnazione zone, debounce
         """
         errors: dict[str, str] = {}
-
-        # Esegui auto-discovery ad ogni visualizzazione dello step
-        # (così rileva beacon aggiunti dopo il primo tentativo)
         self._discovered_beacons = _discover_beacons(self.hass)
 
         if not self._discovered_beacons:
             return self.async_abort(reason="no_beacons_found")
 
         if user_input is not None:
-            # Raccogli i beacon selezionati dal multi-select
             selected = user_input.get(CONF_SELECTED_BEACONS, [])
-
             if not selected:
                 errors["base"] = "no_beacons_selected"
 
-            # Valida le soglie RSSI: min deve essere > max
-            # (min è più vicino a 0, quindi segnale più forte)
-            t_min = user_input.get(CONF_RSSI_THRESHOLD_MIN, -50)
-            t_max = user_input.get(CONF_RSSI_THRESHOLD_MAX, -80)
-            if not (t_min > t_max):
-                errors["base"] = "invalid_rssi_thresholds"
-
-            # Le due zone devono essere diverse
-            zone_near = user_input.get(CONF_ZONE_NEAR, ZONE_HOME)
-            zone_far = user_input.get(CONF_ZONE_FAR, ZONE_PICKUP)
-            if zone_near == zone_far:
-                errors["base"] = "same_zone_assignment"
+            errors.update(_validate_global(user_input))
 
             if not errors:
                 self._selected_macs = selected
                 self._global_config = {
-                    CONF_RSSI_THRESHOLD_MIN: t_min,
-                    CONF_RSSI_THRESHOLD_MAX: t_max,
-                    CONF_ZONE_NEAR: zone_near,
-                    CONF_ZONE_FAR: zone_far,
+                    CONF_RSSI_THRESHOLD_MIN: user_input[CONF_RSSI_THRESHOLD_MIN],
+                    CONF_RSSI_THRESHOLD_MAX: user_input[CONF_RSSI_THRESHOLD_MAX],
+                    CONF_ZONE_NEAR: user_input[CONF_ZONE_NEAR],
+                    CONF_ZONE_FAR: user_input[CONF_ZONE_FAR],
                     CONF_TMON_HOME: user_input[CONF_TMON_HOME],
                     CONF_TMON_PICKUP: user_input[CONF_TMON_PICKUP],
                     CONF_TMON_LOST: user_input[CONF_TMON_LOST],
@@ -205,85 +249,23 @@ class BeaconWasteConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 self._bins = []
                 return await self.async_step_bin()
 
-        # Costruisci le opzioni per il multi-select:
-        # ogni opzione mostra "NomeBeacon (mac_address)"
+        # Multi-select beacon: etichetta = "Nome (mac)"
         beacon_options = [
-            {
-                "value": mac,
-                "label": f"{info['name']} ({mac})",
-            }
+            {"value": mac, "label": f"{info['name']} ({mac})"}
             for mac, info in self._discovered_beacons.items()
         ]
-        # Pre-seleziona tutti i beacon trovati
         all_macs = list(self._discovered_beacons.keys())
 
-        schema = vol.Schema(
-            {
-                # Multi-select a lista per scegliere i beacon da monitorare
-                vol.Required(
-                    CONF_SELECTED_BEACONS, default=all_macs
-                ): SelectSelector(
-                    SelectSelectorConfig(
-                        options=beacon_options,
-                        multiple=True,
-                        mode=SelectSelectorMode.LIST,
-                    )
-                ),
-                # --- Soglie RSSI globali ---
-                vol.Required(
-                    CONF_RSSI_THRESHOLD_MIN, default=-50
-                ): NumberSelector(
-                    NumberSelectorConfig(
-                        min=-100, max=0, step=1, mode=NumberSelectorMode.BOX,
-                        unit_of_measurement="dBm",
-                    )
-                ),
-                vol.Required(
-                    CONF_RSSI_THRESHOLD_MAX, default=-80
-                ): NumberSelector(
-                    NumberSelectorConfig(
-                        min=-100, max=0, step=1, mode=NumberSelectorMode.BOX,
-                        unit_of_measurement="dBm",
-                    )
-                ),
-                # --- Assegnazione zone ---
-                vol.Required(
-                    CONF_ZONE_NEAR, default=ZONE_HOME
-                ): SelectSelector(
-                    SelectSelectorConfig(
-                        options=ZONE_OPTIONS,
-                        mode=SelectSelectorMode.DROPDOWN,
-                    )
-                ),
-                vol.Required(
-                    CONF_ZONE_FAR, default=ZONE_PICKUP
-                ): SelectSelector(
-                    SelectSelectorConfig(
-                        options=ZONE_OPTIONS,
-                        mode=SelectSelectorMode.DROPDOWN,
-                    )
-                ),
-                # --- Tempi di debounce (anti-flapping) ---
-                vol.Required(CONF_TMON_HOME, default=60): NumberSelector(
-                    NumberSelectorConfig(
-                        min=0, max=3600, step=1, mode=NumberSelectorMode.BOX,
-                        unit_of_measurement="s",
-                    )
-                ),
-                vol.Required(CONF_TMON_PICKUP, default=60): NumberSelector(
-                    NumberSelectorConfig(
-                        min=0, max=3600, step=1, mode=NumberSelectorMode.BOX,
-                        unit_of_measurement="s",
-                    )
-                ),
-                vol.Required(CONF_TMON_LOST, default=120): NumberSelector(
-                    NumberSelectorConfig(
-                        min=0, max=3600, step=1, mode=NumberSelectorMode.BOX,
-                        unit_of_measurement="s",
-                    )
-                ),
-            }
-        )
+        schema = vol.Schema({
+            vol.Required(CONF_SELECTED_BEACONS, default=all_macs): SelectSelector(
+                SelectSelectorConfig(
+                    options=beacon_options,
+                    multiple=True,
+                    mode=SelectSelectorMode.LIST,
+                )
+            ),
+            **_global_schema().schema,
+        })
 
         return self.async_show_form(
             step_id="user",
@@ -297,11 +279,7 @@ class BeaconWasteConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_bin(
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.ConfigFlowResult:
-        """Step A: nome tipologia e scelta modalità prelievo.
-
-        Mostra solo nome e selettore modalità. La scelta determina
-        quale step successivo verrà mostrato (bin_calendar o bin_boolean).
-        """
+        """Step A: nome tipologia e scelta modalità prelievo."""
         errors: dict[str, str] = {}
 
         if user_input is not None:
@@ -315,30 +293,25 @@ class BeaconWasteConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         mac = self._selected_macs[self._current_bin]
         info = self._discovered_beacons[mac]
-        bin_num = self._current_bin + 1
 
-        schema = vol.Schema(
-            {
-                vol.Required(CONF_BIN_NAME, default=info["name"]): TextSelector(
-                    TextSelectorConfig(type="text")
-                ),
-                vol.Required(
-                    CONF_PICKUP_MODE, default=PICKUP_MODE_CALENDAR
-                ): SelectSelector(
-                    SelectSelectorConfig(
-                        options=PICKUP_MODE_OPTIONS,
-                        mode=SelectSelectorMode.LIST,
-                    )
-                ),
-            }
-        )
+        schema = vol.Schema({
+            vol.Required(CONF_BIN_NAME, default=info["name"]): TextSelector(
+                TextSelectorConfig(type="text")
+            ),
+            vol.Required(CONF_PICKUP_MODE, default=PICKUP_MODE_CALENDAR): SelectSelector(
+                SelectSelectorConfig(
+                    options=PICKUP_MODE_OPTIONS,
+                    mode=SelectSelectorMode.LIST,
+                )
+            ),
+        })
 
         return self.async_show_form(
             step_id="bin",
             data_schema=schema,
             errors=errors,
             description_placeholders={
-                "bin_number": str(bin_num),
+                "bin_number": str(self._current_bin + 1),
                 "beacon_name": info["name"],
                 "beacon_mac": mac,
             },
@@ -347,53 +320,48 @@ class BeaconWasteConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_bin_calendar(
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.ConfigFlowResult:
-        """Step B1: configurazione modalità calendario (giorni + orario)."""
+        """Step B1: giorni prelievo (multi-select) + orario esposizione."""
         errors: dict[str, str] = {}
 
         if user_input is not None:
-            pickup_days = [
-                day for day in DAYS_OF_WEEK
-                if user_input.get(f"day_{day}", False)
-            ]
+            # CONF_PICKUP_DAYS è ora direttamente la lista restituita dal multi-select
+            pickup_days = user_input.get(CONF_PICKUP_DAYS, [])
             if not pickup_days:
                 errors["base"] = "no_pickup_days"
 
             if not errors:
                 mac = self._selected_macs[self._current_bin]
                 info = self._discovered_beacons[mac]
-                bin_config = {
+                self._bins.append({
                     **self._current_bin_partial,
                     CONF_BEACON_MAC: mac,
                     "entity_prefix": info["prefix"],
                     CONF_PICKUP_DAYS: pickup_days,
                     CONF_PICKUP_TIME_START: user_input[CONF_PICKUP_TIME_START],
                     CONF_PICKUP_BOOLEAN_ENTITY: "",
-                }
-                self._bins.append(bin_config)
+                })
                 self._current_bin += 1
-
                 if self._current_bin < len(self._selected_macs):
                     return await self.async_step_bin()
-
                 return self.async_create_entry(
                     title="Beacon Waste Collection",
                     data={**self._global_config, CONF_BINS: self._bins},
                 )
 
-        schema = vol.Schema(
-            {
-                vol.Optional("day_mon", default=False): BooleanSelector(),
-                vol.Optional("day_tue", default=False): BooleanSelector(),
-                vol.Optional("day_wed", default=False): BooleanSelector(),
-                vol.Optional("day_thu", default=False): BooleanSelector(),
-                vol.Optional("day_fri", default=False): BooleanSelector(),
-                vol.Optional("day_sat", default=False): BooleanSelector(),
-                vol.Optional("day_sun", default=False): BooleanSelector(),
-                vol.Required(CONF_PICKUP_TIME_START, default="20:00"): TimeSelector(
-                    TimeSelectorConfig()
-                ),
-            }
-        )
+        schema = vol.Schema({
+            # Multi-select giorni: restituisce direttamente lista di "mon","tue"...
+            # Le label sono gestite da strings.json tramite il campo "options"
+            vol.Required(CONF_PICKUP_DAYS, default=[]): SelectSelector(
+                SelectSelectorConfig(
+                    options=DAY_OPTIONS,
+                    multiple=True,
+                    mode=SelectSelectorMode.LIST,
+                )
+            ),
+            vol.Required(CONF_PICKUP_TIME_START, default="20:00"): TimeSelector(
+                TimeSelectorConfig()
+            ),
+        })
 
         mac = self._selected_macs[self._current_bin]
         info = self._discovered_beacons[mac]
@@ -412,7 +380,7 @@ class BeaconWasteConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_bin_boolean(
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.ConfigFlowResult:
-        """Step B2: configurazione modalità booleana (entità esterna)."""
+        """Step B2: selezione entità booleana esterna."""
         errors: dict[str, str] = {}
 
         if user_input is not None:
@@ -422,34 +390,27 @@ class BeaconWasteConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             if not errors:
                 mac = self._selected_macs[self._current_bin]
                 info = self._discovered_beacons[mac]
-                bin_config = {
+                self._bins.append({
                     **self._current_bin_partial,
                     CONF_BEACON_MAC: mac,
                     "entity_prefix": info["prefix"],
                     CONF_PICKUP_DAYS: [],
                     CONF_PICKUP_TIME_START: "20:00",
                     CONF_PICKUP_BOOLEAN_ENTITY: user_input[CONF_PICKUP_BOOLEAN_ENTITY],
-                }
-                self._bins.append(bin_config)
+                })
                 self._current_bin += 1
-
                 if self._current_bin < len(self._selected_macs):
                     return await self.async_step_bin()
-
                 return self.async_create_entry(
                     title="Beacon Waste Collection",
                     data={**self._global_config, CONF_BINS: self._bins},
                 )
 
-        schema = vol.Schema(
-            {
-                vol.Required(CONF_PICKUP_BOOLEAN_ENTITY): EntitySelector(
-                    EntitySelectorConfig(
-                        domain=["binary_sensor", "input_boolean"]
-                    )
-                ),
-            }
-        )
+        schema = vol.Schema({
+            vol.Required(CONF_PICKUP_BOOLEAN_ENTITY): EntitySelector(
+                EntitySelectorConfig(domain=["binary_sensor", "input_boolean"])
+            ),
+        })
 
         mac = self._selected_macs[self._current_bin]
         info = self._discovered_beacons[mac]
@@ -465,8 +426,40 @@ class BeaconWasteConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             },
         )
 
-    def _save_bin_and_continue(
-        self, extra: dict[str, Any]
+
+# ---------------------------------------------------------------------------
+# Options flow (riconfigurazione soglie e zone)
+# ---------------------------------------------------------------------------
+
+class BeaconWasteOptionsFlow(config_entries.OptionsFlow):
+    """Permette di riconfigurare i parametri globali senza reinstallare.
+
+    Accessibile da: Impostazioni → Dispositivi e servizi → [integrazione] → Configura.
+    Modifica solo soglie RSSI, zone e debounce; i secchi rimangono invariati.
+    Al salvataggio, l'integrazione viene ricaricata automaticamente da HA.
+    """
+
+    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+        """Inizializza con i valori correnti dalla config entry."""
+        self._config_entry = config_entry
+
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
     ) -> config_entries.ConfigFlowResult:
-        """Non più usato — logica inlined negli step calendar/boolean."""
-        raise NotImplementedError
+        """Unico step dell'options flow: modifica parametri globali."""
+        errors: dict[str, str] = {}
+
+        if user_input is not None:
+            errors = _validate_global(user_input)
+            if not errors:
+                # Salva le opzioni; HA ricarica automaticamente l'integrazione
+                return self.async_create_entry(title="", data=user_input)
+
+        # Pre-popola con i valori correnti (da options se già modificati, altrimenti da data)
+        current = {**self._config_entry.data, **self._config_entry.options}
+
+        return self.async_show_form(
+            step_id="init",
+            data_schema=_global_schema(current),
+            errors=errors,
+        )

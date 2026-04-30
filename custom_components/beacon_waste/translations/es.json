@@ -37,17 +37,8 @@
                 "title": "Calendario de recogida: {beacon_name}",
                 "description": "Configura los días y horario de exposición para {beacon_name} (MAC: {beacon_mac}).",
                 "data": {
-                    "day_mon": "Lunes",
-                    "day_tue": "Martes",
-                    "day_wed": "Miércoles",
-                    "day_thu": "Jueves",
-                    "day_fri": "Viernes",
-                    "day_sat": "Sábado",
-                    "day_sun": "Domingo",
+                    "pickup_days": "Días de recogida",
                     "pickup_time_start": "Hora de inicio exposición (noche anterior)"
-                },
-                "data_description": {
-                    "pickup_time_start": "Hora a partir de la cual el cubo puede exponerse la noche anterior (ej. 20:00)"
                 }
             },
             "bin_boolean": {
@@ -70,6 +61,23 @@
         },
         "abort": {
             "no_beacons_found": "No se encontraron beacons. Verifica que los sensores ESPHome estén activos con el patrón sensor.*_XXXXXXXXXXXX_rssi."
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "title": "Reconfigurar parámetros globales",
+                "description": "Modifica umbrales RSSI, zonas y tiempos de debounce. Los cubos configurados permanecen sin cambios.",
+                "data": {
+                    "rssi_threshold_min": "Umbral RSSI mínimo",
+                    "rssi_threshold_max": "Umbral RSSI máximo",
+                    "zone_near": "Zona señal fuerte",
+                    "zone_far": "Zona señal media",
+                    "tmon_home": "Debounce zona Casa (s)",
+                    "tmon_pickup": "Debounce zona Recogida (s)",
+                    "tmon_lost": "Debounce zona No Definida (s)"
+                }
+            }
         }
     }
 }

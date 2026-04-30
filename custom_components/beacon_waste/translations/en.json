@@ -37,17 +37,8 @@
                 "title": "Pickup calendar: {beacon_name}",
                 "description": "Configure pickup days and exposure time for {beacon_name} (MAC: {beacon_mac}).",
                 "data": {
-                    "day_mon": "Monday",
-                    "day_tue": "Tuesday",
-                    "day_wed": "Wednesday",
-                    "day_thu": "Thursday",
-                    "day_fri": "Friday",
-                    "day_sat": "Saturday",
-                    "day_sun": "Sunday",
+                    "pickup_days": "Pickup days",
                     "pickup_time_start": "Exposure start time (evening before)"
-                },
-                "data_description": {
-                    "pickup_time_start": "Time from which the bin can be put out the evening before pickup day (e.g. 20:00)"
                 }
             },
             "bin_boolean": {
@@ -70,6 +61,23 @@
         },
         "abort": {
             "no_beacons_found": "No beacons found. Verify ESPHome sensors are active with pattern sensor.*_XXXXXXXXXXXX_rssi."
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "title": "Reconfigure global settings",
+                "description": "Modify RSSI thresholds, zone assignments and debounce times. Configured bins remain unchanged.",
+                "data": {
+                    "rssi_threshold_min": "RSSI threshold min (strong signal, near)",
+                    "rssi_threshold_max": "RSSI threshold max (weak signal, far)",
+                    "zone_near": "Zone for strong signal (near antenna)",
+                    "zone_far": "Zone for medium signal (far from antenna)",
+                    "tmon_home": "Debounce Home zone (seconds)",
+                    "tmon_pickup": "Debounce Pickup zone (seconds)",
+                    "tmon_lost": "Debounce Undefined zone (seconds)"
+                }
+            }
         }
     }
 }

@@ -37,17 +37,8 @@
                 "title": "Calendrier de collecte : {beacon_name}",
                 "description": "Configurez les jours et l'heure d'exposition pour {beacon_name} (MAC : {beacon_mac}).",
                 "data": {
-                    "day_mon": "Lundi",
-                    "day_tue": "Mardi",
-                    "day_wed": "Mercredi",
-                    "day_thu": "Jeudi",
-                    "day_fri": "Vendredi",
-                    "day_sat": "Samedi",
-                    "day_sun": "Dimanche",
+                    "pickup_days": "Jours de collecte",
                     "pickup_time_start": "Heure de début d'exposition (veille au soir)"
-                },
-                "data_description": {
-                    "pickup_time_start": "Heure à partir de laquelle la poubelle peut être exposée la veille (ex. 20:00)"
                 }
             },
             "bin_boolean": {
@@ -70,6 +61,23 @@
         },
         "abort": {
             "no_beacons_found": "Aucun beacon trouvé. Vérifiez que les capteurs ESPHome sont actifs avec le modèle sensor.*_XXXXXXXXXXXX_rssi."
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "title": "Reconfigurer les paramètres globaux",
+                "description": "Modifiez les seuils RSSI, les zones et les temps de debounce. Les poubelles configurées restent inchangées.",
+                "data": {
+                    "rssi_threshold_min": "Seuil RSSI minimum",
+                    "rssi_threshold_max": "Seuil RSSI maximum",
+                    "zone_near": "Zone signal fort",
+                    "zone_far": "Zone signal moyen",
+                    "tmon_home": "Debounce zone Maison (s)",
+                    "tmon_pickup": "Debounce zone Collecte (s)",
+                    "tmon_lost": "Debounce zone Non Définie (s)"
+                }
+            }
         }
     }
 }

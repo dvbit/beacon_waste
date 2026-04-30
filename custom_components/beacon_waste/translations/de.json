@@ -37,17 +37,8 @@
                 "title": "Abfuhrkalender: {beacon_name}",
                 "description": "Abfuhrtage und Bereitstellungszeit für {beacon_name} (MAC: {beacon_mac}) konfigurieren.",
                 "data": {
-                    "day_mon": "Montag",
-                    "day_tue": "Dienstag",
-                    "day_wed": "Mittwoch",
-                    "day_thu": "Donnerstag",
-                    "day_fri": "Freitag",
-                    "day_sat": "Samstag",
-                    "day_sun": "Sonntag",
+                    "pickup_days": "Abfuhrtage",
                     "pickup_time_start": "Bereitstellungszeit (Vorabend)"
-                },
-                "data_description": {
-                    "pickup_time_start": "Uhrzeit, ab der die Tonne am Vorabend bereitgestellt werden kann (z.B. 20:00)"
                 }
             },
             "bin_boolean": {
@@ -70,6 +61,23 @@
         },
         "abort": {
             "no_beacons_found": "Keine Beacons gefunden. Überprüfen Sie, ob die ESPHome-Sensoren mit dem Muster sensor.*_XXXXXXXXXXXX_rssi aktiv sind."
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "title": "Globale Parameter neu konfigurieren",
+                "description": "RSSI-Schwellen, Zonen und Debounce-Zeiten ändern. Konfigurierte Tonnen bleiben unverändert.",
+                "data": {
+                    "rssi_threshold_min": "RSSI-Schwelle minimal",
+                    "rssi_threshold_max": "RSSI-Schwelle maximal",
+                    "zone_near": "Zone starkes Signal",
+                    "zone_far": "Zone mittleres Signal",
+                    "tmon_home": "Debounce Zone Zuhause (s)",
+                    "tmon_pickup": "Debounce Zone Abholung (s)",
+                    "tmon_lost": "Debounce Zone Nicht Definiert (s)"
+                }
+            }
         }
     }
 }
