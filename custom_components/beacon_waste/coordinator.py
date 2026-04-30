@@ -164,6 +164,9 @@ class BinCoordinator:
         # Contatore: quante volte il secchio è stato usato dall'ultimo svuotamento
         self.immission_count: int = 0
 
+        # Ultimo valore RSSI letto dal beacon (None se mai ricevuto)
+        self.rssi_value: float | None = None
+
         # --- Callback e listener ---
         # Le entità HA si registrano qui per ricevere notifiche di aggiornamento
         self._update_callbacks: list[callback] = []
@@ -337,6 +340,10 @@ class BinCoordinator:
             rssi = float(new_state.state)
         except (ValueError, TypeError):
             return
+
+        # Aggiorna il valore RSSI corrente e notifica le entità
+        self.rssi_value = rssi
+        self._notify_update()
 
         detected_zone = self._get_rssi_zone(rssi)
 
