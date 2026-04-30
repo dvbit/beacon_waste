@@ -2,8 +2,9 @@
 
 ## Hardware
 
-- **ESP32** (esp32dev) con interfaccia Ethernet **LAN8720**
-- IP statico: `192.168.2.166`
+- **ESP32** (esp32dev) con interfaccia Ethernet **LAN8720** Ma qualsiasi ESP32 che possa fare da Proxy va bene
+- Beacon Holyiot - Se usate altri la decodifica va adeguata
+- IP statico: `192.168.2.166` Da cambiare con il vostro
 - Collegamento a Home Assistant via API ESPHome (porta 6053)
 - Web server locale su porta 80
 
