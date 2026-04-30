@@ -9,7 +9,9 @@ Crea un'entità select per ogni secchio che mostra la zona corrente:
 La zona è determinata automaticamente dal segnale RSSI con debounce,
 ma può essere sovrascritta manualmente tramite il selettore.
 
-L'entità è raggruppata sotto il dispositivo "Secchio {Nome}".
+NOTA: _attr_translation_key è intenzionalmente assente perché causerebbe
+conflitto con la property current_option — HA userebbe la traduzione
+invece di leggere il valore dal coordinator.
 """
 from __future__ import annotations
 
@@ -22,7 +24,6 @@ from homeassistant.helpers.entity import DeviceInfo
 from .const import DOMAIN, ZONE_HOME, ZONE_PICKUP, ZONE_UNDEFINED
 from .coordinator import BinCoordinator
 
-# Valori possibili per il selettore zona
 ZONE_OPTIONS = [ZONE_HOME, ZONE_PICKUP, ZONE_UNDEFINED]
 
 
@@ -33,10 +34,9 @@ async def async_setup_entry(
 ) -> None:
     """Crea un'entità select zona per ogni secchio configurato."""
     coordinators: list[BinCoordinator] = hass.data[DOMAIN][entry.entry_id]
-    entities = [
+    async_add_entities(
         BinZoneSelect(coordinator, entry) for coordinator in coordinators
-    ]
-    async_add_entities(entities)
+    )
 
 
 class BinZoneSelect(SelectEntity):
@@ -47,6 +47,7 @@ class BinZoneSelect(SelectEntity):
     """
 
     _attr_has_entity_name = True
+    _attr_options = ZONE_OPTIONS
 
     def __init__(
         self, coordinator: BinCoordinator, entry: ConfigEntry
@@ -54,11 +55,10 @@ class BinZoneSelect(SelectEntity):
         """Inizializza l'entità select zona."""
         self._coordinator = coordinator
         self._entry = entry
-        # Unique ID composto da entry_id + nome secchio + "zona"
         self._attr_unique_id = f"{entry.entry_id}_{coordinator.name}_zona"
-        self._attr_translation_key = "zona"
-        self._attr_options = ZONE_OPTIONS
-        self._attr_current_option = coordinator.zone
+        # NON impostare _attr_current_option qui: verrebbe "congelato" al valore
+        # di init e non si aggiornerebbe. Usare solo la @property current_option.
+        # NON impostare _attr_translation_key: causerebbe conflitto con la property.
 
     @property
     def name(self) -> str:
@@ -77,11 +77,11 @@ class BinZoneSelect(SelectEntity):
 
     @property
     def current_option(self) -> str:
-        """Restituisce la zona corrente dal coordinator."""
+        """Legge la zona corrente direttamente dal coordinator ad ogni chiamata."""
         return self._coordinator.zone
 
     async def async_select_option(self, option: str) -> None:
-        """Override manuale della zona (uso eccezionale)."""
+        """Override manuale della zona (uso eccezionale, es. debug)."""
         self._coordinator.zone = option
         self.async_write_ha_state()
 

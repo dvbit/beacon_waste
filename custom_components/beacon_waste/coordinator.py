@@ -168,8 +168,10 @@ class BinCoordinator:
         # Contatore: quante volte il secchio è stato usato dall'ultimo svuotamento
         self.immission_count: int = 0
 
-        # Ultimo valore RSSI letto dal beacon (None se mai ricevuto)
+        # Valori dei sensori ambientali (None se mai ricevuti)
         self.rssi_value: float | None = None
+        self.temperature_value: float | None = None
+        self.humidity_value: float | None = None
 
         # --- Callback e listener ---
         # Le entità HA si registrano qui per ricevere notifiche di aggiornamento
@@ -263,6 +265,18 @@ class BinCoordinator:
         self._unsub_listeners.append(
             async_track_state_change_event(
                 self.hass, [self._rssi_entity], self._handle_rssi_change
+            )
+        )
+
+        # Listener temperatura e umidità per aggiornamento valori UI
+        self._unsub_listeners.append(
+            async_track_state_change_event(
+                self.hass, [self._temperature_entity], self._handle_temperature_change
+            )
+        )
+        self._unsub_listeners.append(
+            async_track_state_change_event(
+                self.hass, [self._humidity_entity], self._handle_humidity_change
             )
         )
 
@@ -402,6 +416,36 @@ class BinCoordinator:
             # Il segnale è tornato nella zona attuale: annulla il debounce
             self._pending_zone = None
             self._pending_zone_since = None
+
+    @callback
+    def _handle_temperature_change(self, event: Event) -> None:
+        """Gestisce il cambio del sensore temperatura.
+
+        Aggiorna il valore locale e notifica le entità per l'aggiornamento UI.
+        """
+        new_state = event.data.get("new_state")
+        if new_state is None or new_state.state in ("unknown", "unavailable"):
+            return
+        try:
+            self.temperature_value = float(new_state.state)
+            self._notify_update()
+        except (ValueError, TypeError):
+            pass
+
+    @callback
+    def _handle_humidity_change(self, event: Event) -> None:
+        """Gestisce il cambio del sensore umidità.
+
+        Aggiorna il valore locale e notifica le entità per l'aggiornamento UI.
+        """
+        new_state = event.data.get("new_state")
+        if new_state is None or new_state.state in ("unknown", "unavailable"):
+            return
+        try:
+            self.humidity_value = float(new_state.state)
+            self._notify_update()
+        except (ValueError, TypeError):
+            pass
 
     @callback
     def _handle_vibration(self, event: Event) -> None:
