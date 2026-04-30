@@ -24,8 +24,8 @@ from .const import (
     DOMAIN,
     PLATFORMS,
     CONF_BINS,
-    CONF_RSSI_THRESHOLD_MIN,
-    CONF_RSSI_THRESHOLD_MAX,
+    CONF_RSSI_THRESHOLD_HIGH,
+    CONF_RSSI_THRESHOLD_LOW,
     CONF_ZONE_NEAR,
     CONF_ZONE_FAR,
     CONF_TMON_HOME,
@@ -49,11 +49,11 @@ def _get_global_config(entry: ConfigEntry) -> dict[str, Any]:
     le soglie RSSI e le zone tramite l'options flow senza reinstallare.
     """
     return {
-        CONF_RSSI_THRESHOLD_MIN: entry.options.get(
-            CONF_RSSI_THRESHOLD_MIN, entry.data[CONF_RSSI_THRESHOLD_MIN]
+        CONF_RSSI_THRESHOLD_HIGH: entry.options.get(
+            CONF_RSSI_THRESHOLD_HIGH, entry.data[CONF_RSSI_THRESHOLD_HIGH]
         ),
-        CONF_RSSI_THRESHOLD_MAX: entry.options.get(
-            CONF_RSSI_THRESHOLD_MAX, entry.data[CONF_RSSI_THRESHOLD_MAX]
+        CONF_RSSI_THRESHOLD_LOW: entry.options.get(
+            CONF_RSSI_THRESHOLD_LOW, entry.data[CONF_RSSI_THRESHOLD_LOW]
         ),
         CONF_ZONE_NEAR: entry.options.get(CONF_ZONE_NEAR, entry.data[CONF_ZONE_NEAR]),
         CONF_ZONE_FAR: entry.options.get(CONF_ZONE_FAR, entry.data[CONF_ZONE_FAR]),

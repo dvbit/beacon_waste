@@ -6,20 +6,20 @@
                 "description": "Trovati {beacon_count} beacon. Seleziona quali monitorare e configura i parametri globali.",
                 "data": {
                     "selected_beacons": "Beacon trovati",
-                    "rssi_threshold_min": "Soglia RSSI minima (segnale forte, vicino)",
-                    "rssi_threshold_max": "Soglia RSSI massima (segnale debole, lontano)",
                     "zone_near": "Zona per segnale forte (vicino all'antenna)",
                     "zone_far": "Zona per segnale medio (lontano dall'antenna)",
                     "tmon_home": "Debounce zona Casa (secondi)",
                     "tmon_pickup": "Debounce zona Prelievo (secondi)",
-                    "tmon_lost": "Debounce zona Non Definita (secondi)"
+                    "tmon_lost": "Debounce zona Non Definita (secondi)",
+                    "rssi_threshold_low": "Soglia RSSI bassa - Soglia1 (sotto = disperso)",
+                    "rssi_threshold_high": "Soglia RSSI alta - Soglia2 (sopra = zona vicina)"
                 },
                 "data_description": {
                     "selected_beacons": "Seleziona i beacon da monitorare. Ogni voce mostra: Nome beacon (indirizzo MAC)",
-                    "rssi_threshold_min": "Sopra questo valore il beacon è nella zona 'vicina' (es. -50 dBm)",
-                    "rssi_threshold_max": "Sotto questo valore il beacon è disperso (es. -80 dBm). Tra le due soglie è nella zona 'lontana'",
                     "zone_near": "Quale zona assegnare quando il beacon è vicino all'antenna",
-                    "zone_far": "Quale zona assegnare quando il beacon è lontano dall'antenna"
+                    "zone_far": "Quale zona assegnare quando il beacon è lontano dall'antenna",
+                    "rssi_threshold_low": "RSSI < Soglia1 → Disperso. Es. -80 dBm. Deve essere inferiore a Soglia2.",
+                    "rssi_threshold_high": "RSSI ≥ Soglia2 → Zona vicina. Es. -50 dBm. Deve essere superiore a Soglia1."
                 }
             },
             "bin": {
@@ -53,7 +53,7 @@
             }
         },
         "error": {
-            "invalid_rssi_thresholds": "Soglia minima deve essere maggiore della soglia massima (più vicino a 0 = segnale più forte).",
+            "invalid_rssi_thresholds": "Soglia1 deve essere inferiore a Soglia2 (es. -80 < -50).",
             "no_pickup_days": "Seleziona almeno un giorno di prelievo.",
             "same_zone_assignment": "Le due zone devono essere diverse tra loro.",
             "no_beacons_selected": "Seleziona almeno un beacon da monitorare.",
@@ -69,13 +69,17 @@
                 "title": "Riconfigurazione parametri globali",
                 "description": "Modifica le soglie RSSI, le zone e i tempi di debounce. I secchi configurati rimangono invariati.",
                 "data": {
-                    "rssi_threshold_min": "Soglia RSSI minima (segnale forte, vicino)",
-                    "rssi_threshold_max": "Soglia RSSI massima (segnale debole, lontano)",
                     "zone_near": "Zona per segnale forte (vicino all'antenna)",
                     "zone_far": "Zona per segnale medio (lontano dall'antenna)",
                     "tmon_home": "Debounce zona Casa (secondi)",
                     "tmon_pickup": "Debounce zona Prelievo (secondi)",
-                    "tmon_lost": "Debounce zona Non Definita (secondi)"
+                    "tmon_lost": "Debounce zona Non Definita (secondi)",
+                    "rssi_threshold_low": "Soglia RSSI bassa - Soglia1 (sotto = disperso)",
+                    "rssi_threshold_high": "Soglia RSSI alta - Soglia2 (sopra = zona vicina)"
+                },
+                "data_description": {
+                    "rssi_threshold_low": "RSSI < Soglia1 → Disperso. Es. -80 dBm. Deve essere inferiore a Soglia2.",
+                    "rssi_threshold_high": "RSSI ≥ Soglia2 → Zona vicina. Es. -50 dBm. Deve essere superiore a Soglia1."
                 }
             }
         }

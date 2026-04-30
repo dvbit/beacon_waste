@@ -6,20 +6,20 @@
                 "description": "Found {beacon_count} beacons. Select which to monitor and configure global settings.",
                 "data": {
                     "selected_beacons": "Discovered beacons",
-                    "rssi_threshold_min": "RSSI threshold min (strong signal, near)",
-                    "rssi_threshold_max": "RSSI threshold max (weak signal, far)",
                     "zone_near": "Zone for strong signal (near antenna)",
                     "zone_far": "Zone for medium signal (far from antenna)",
                     "tmon_home": "Debounce Home zone (seconds)",
                     "tmon_pickup": "Debounce Pickup zone (seconds)",
-                    "tmon_lost": "Debounce Undefined zone (seconds)"
+                    "tmon_lost": "Debounce Undefined zone (seconds)",
+                    "rssi_threshold_low": "RSSI low threshold - Threshold1 (below = lost)",
+                    "rssi_threshold_high": "RSSI high threshold - Threshold2 (above = near zone)"
                 },
                 "data_description": {
                     "selected_beacons": "Select beacons to monitor. Each entry shows: Beacon name (MAC address)",
-                    "rssi_threshold_min": "RSSI above this value means beacon is in 'near' zone (e.g. -50 dBm)",
-                    "rssi_threshold_max": "RSSI below this value means beacon is lost (e.g. -80 dBm). Between = 'far' zone",
                     "zone_near": "Which zone to assign when beacon is near antenna",
-                    "zone_far": "Which zone to assign when beacon is far from antenna"
+                    "zone_far": "Which zone to assign when beacon is far from antenna",
+                    "rssi_threshold_low": "RSSI < Threshold1 → Lost. E.g. -80 dBm. Must be lower than Threshold2.",
+                    "rssi_threshold_high": "RSSI ≥ Threshold2 → Near zone. E.g. -50 dBm. Must be higher than Threshold1."
                 }
             },
             "bin": {
@@ -53,7 +53,7 @@
             }
         },
         "error": {
-            "invalid_rssi_thresholds": "Min threshold must be greater than max threshold (closer to 0 = stronger signal).",
+            "invalid_rssi_thresholds": "Threshold1 must be lower than Threshold2 (e.g. -80 < -50).",
             "no_pickup_days": "Select at least one pickup day.",
             "same_zone_assignment": "The two zones must be different from each other.",
             "no_beacons_selected": "Select at least one beacon to monitor.",
@@ -69,13 +69,17 @@
                 "title": "Reconfigure global settings",
                 "description": "Modify RSSI thresholds, zone assignments and debounce times. Configured bins remain unchanged.",
                 "data": {
-                    "rssi_threshold_min": "RSSI threshold min (strong signal, near)",
-                    "rssi_threshold_max": "RSSI threshold max (weak signal, far)",
                     "zone_near": "Zone for strong signal (near antenna)",
                     "zone_far": "Zone for medium signal (far from antenna)",
                     "tmon_home": "Debounce Home zone (seconds)",
                     "tmon_pickup": "Debounce Pickup zone (seconds)",
-                    "tmon_lost": "Debounce Undefined zone (seconds)"
+                    "tmon_lost": "Debounce Undefined zone (seconds)",
+                    "rssi_threshold_low": "RSSI low threshold - Threshold1 (below = lost)",
+                    "rssi_threshold_high": "RSSI high threshold - Threshold2 (above = near zone)"
+                },
+                "data_description": {
+                    "rssi_threshold_low": "RSSI < Threshold1 → Lost. E.g. -80 dBm. Must be lower than Threshold2.",
+                    "rssi_threshold_high": "RSSI ≥ Threshold2 → Near zone. E.g. -50 dBm. Must be higher than Threshold1."
                 }
             }
         }

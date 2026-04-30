@@ -6,20 +6,20 @@
                 "description": "Se encontraron {beacon_count} beacons. Selecciona cuáles monitorizar y configura los parámetros globales.",
                 "data": {
                     "selected_beacons": "Beacons encontrados",
-                    "rssi_threshold_min": "Umbral RSSI mínimo (señal fuerte, cerca)",
-                    "rssi_threshold_max": "Umbral RSSI máximo (señal débil, lejos)",
                     "zone_near": "Zona para señal fuerte (cerca de la antena)",
                     "zone_far": "Zona para señal media (lejos de la antena)",
                     "tmon_home": "Debounce zona Casa (segundos)",
                     "tmon_pickup": "Debounce zona Recogida (segundos)",
-                    "tmon_lost": "Debounce zona No Definida (segundos)"
+                    "tmon_lost": "Debounce zona No Definida (segundos)",
+                    "rssi_threshold_low": "Umbral RSSI bajo - Umbral1 (abajo = perdido)",
+                    "rssi_threshold_high": "Umbral RSSI alto - Umbral2 (encima = zona cercana)"
                 },
                 "data_description": {
                     "selected_beacons": "Selecciona los beacons a monitorizar. Cada entrada muestra: Nombre beacon (dirección MAC)",
-                    "rssi_threshold_min": "Por encima de este valor el beacon está en la zona 'cercana' (ej. -50 dBm)",
-                    "rssi_threshold_max": "Por debajo de este valor el beacon está perdido (ej. -80 dBm). Entre ambos umbrales está en la zona 'lejana'",
                     "zone_near": "Qué zona asignar cuando el beacon está cerca de la antena",
-                    "zone_far": "Qué zona asignar cuando el beacon está lejos de la antena"
+                    "zone_far": "Qué zona asignar cuando el beacon está lejos de la antena",
+                    "rssi_threshold_low": "RSSI < Umbral1 → Perdido. Ej. -80 dBm.",
+                    "rssi_threshold_high": "RSSI ≥ Umbral2 → Zona cercana. Ej. -50 dBm."
                 }
             },
             "bin": {
@@ -53,7 +53,7 @@
             }
         },
         "error": {
-            "invalid_rssi_thresholds": "El umbral mínimo debe ser mayor que el máximo.",
+            "invalid_rssi_thresholds": "Umbral1 debe ser inferior a Umbral2 (ej. -80 < -50).",
             "no_pickup_days": "Selecciona al menos un día de recogida.",
             "same_zone_assignment": "Las dos zonas deben ser diferentes.",
             "no_beacons_selected": "Selecciona al menos un beacon.",
@@ -69,13 +69,17 @@
                 "title": "Reconfigurar parámetros globales",
                 "description": "Modifica umbrales RSSI, zonas y tiempos de debounce. Los cubos configurados permanecen sin cambios.",
                 "data": {
-                    "rssi_threshold_min": "Umbral RSSI mínimo",
-                    "rssi_threshold_max": "Umbral RSSI máximo",
                     "zone_near": "Zona señal fuerte",
                     "zone_far": "Zona señal media",
                     "tmon_home": "Debounce zona Casa (s)",
                     "tmon_pickup": "Debounce zona Recogida (s)",
-                    "tmon_lost": "Debounce zona No Definida (s)"
+                    "tmon_lost": "Debounce zona No Definida (s)",
+                    "rssi_threshold_low": "Umbral RSSI bajo - Umbral1 (abajo = perdido)",
+                    "rssi_threshold_high": "Umbral RSSI alto - Umbral2 (encima = zona cercana)"
+                },
+                "data_description": {
+                    "rssi_threshold_low": "RSSI < Umbral1 → Perdido. Ej. -80 dBm.",
+                    "rssi_threshold_high": "RSSI ≥ Umbral2 → Zona cercana. Ej. -50 dBm."
                 }
             }
         }

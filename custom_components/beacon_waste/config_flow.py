@@ -46,8 +46,8 @@ from .const import (
     CONF_PICKUP_BOOLEAN_ENTITY,
     PICKUP_MODE_CALENDAR,
     PICKUP_MODE_BOOLEAN,
-    CONF_RSSI_THRESHOLD_MIN,
-    CONF_RSSI_THRESHOLD_MAX,
+    CONF_RSSI_THRESHOLD_HIGH,
+    CONF_RSSI_THRESHOLD_LOW,
     CONF_ZONE_NEAR,
     CONF_ZONE_FAR,
     CONF_TMON_HOME,
@@ -125,15 +125,15 @@ def _global_schema(current: dict[str, Any] | None = None) -> vol.Schema:
     return vol.Schema(
         {
             vol.Required(
-                CONF_RSSI_THRESHOLD_MIN,
-                default=c.get(CONF_RSSI_THRESHOLD_MIN, -50),
+                CONF_RSSI_THRESHOLD_HIGH,
+                default=c.get(CONF_RSSI_THRESHOLD_HIGH, -50),
             ): NumberSelector(NumberSelectorConfig(
                 min=-100, max=0, step=1, mode=NumberSelectorMode.BOX,
                 unit_of_measurement="dBm",
             )),
             vol.Required(
-                CONF_RSSI_THRESHOLD_MAX,
-                default=c.get(CONF_RSSI_THRESHOLD_MAX, -80),
+                CONF_RSSI_THRESHOLD_LOW,
+                default=c.get(CONF_RSSI_THRESHOLD_LOW, -80),
             ): NumberSelector(NumberSelectorConfig(
                 min=-100, max=0, step=1, mode=NumberSelectorMode.BOX,
                 unit_of_measurement="dBm",
@@ -178,7 +178,7 @@ def _global_schema(current: dict[str, Any] | None = None) -> vol.Schema:
 def _validate_global(user_input: dict[str, Any]) -> dict[str, str]:
     """Valida i parametri globali. Restituisce dict di errori (vuoto = ok)."""
     errors: dict[str, str] = {}
-    if not (user_input[CONF_RSSI_THRESHOLD_MIN] > user_input[CONF_RSSI_THRESHOLD_MAX]):
+    if not (user_input[CONF_RSSI_THRESHOLD_HIGH] > user_input[CONF_RSSI_THRESHOLD_LOW]):
         errors["base"] = "invalid_rssi_thresholds"
     if user_input[CONF_ZONE_NEAR] == user_input[CONF_ZONE_FAR]:
         errors["base"] = "same_zone_assignment"
@@ -237,8 +237,8 @@ class BeaconWasteConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             if not errors:
                 self._selected_macs = selected
                 self._global_config = {
-                    CONF_RSSI_THRESHOLD_MIN: user_input[CONF_RSSI_THRESHOLD_MIN],
-                    CONF_RSSI_THRESHOLD_MAX: user_input[CONF_RSSI_THRESHOLD_MAX],
+                    CONF_RSSI_THRESHOLD_HIGH: user_input[CONF_RSSI_THRESHOLD_HIGH],
+                    CONF_RSSI_THRESHOLD_LOW: user_input[CONF_RSSI_THRESHOLD_LOW],
                     CONF_ZONE_NEAR: user_input[CONF_ZONE_NEAR],
                     CONF_ZONE_FAR: user_input[CONF_ZONE_FAR],
                     CONF_TMON_HOME: user_input[CONF_TMON_HOME],

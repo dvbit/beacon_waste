@@ -39,12 +39,16 @@ CONF_PICKUP_BOOLEAN_ENTITY = "pickup_boolean_entity"
 # Valori per CONF_PICKUP_MODE
 PICKUP_MODE_CALENDAR = "calendar"  # Giorni della settimana + orario
 PICKUP_MODE_BOOLEAN = "boolean"    # Entità booleana esterna
-# Soglia RSSI "vicina": segnale sopra questo valore = zona vicina all'antenna
-# Valore negativo in dBm, più vicino a 0 = segnale più forte (es. -50)
-CONF_RSSI_THRESHOLD_MIN = "rssi_threshold_min"
-# Soglia RSSI "lontana": segnale sotto questo valore = disperso
-# Tra le due soglie = zona lontana dall'antenna (es. -80)
-CONF_RSSI_THRESHOLD_MAX = "rssi_threshold_max"
+# Soglia RSSI bassa (soglia1): sotto questo valore il beacon è disperso (non_definita)
+# Es. -80 dBm. Deve essere numericamente INFERIORE a CONF_RSSI_THRESHOLD_HIGH.
+CONF_RSSI_THRESHOLD_LOW = "rssi_threshold_low"
+# Soglia RSSI alta (soglia2): sopra questo valore il beacon è nella zona vicina
+# Es. -50 dBm. Deve essere numericamente SUPERIORE a CONF_RSSI_THRESHOLD_LOW.
+# Tra le due soglie = zona lontana dall'antenna.
+CONF_RSSI_THRESHOLD_HIGH = "rssi_threshold_high"
+# Alias per compatibilità con versioni precedenti (chiavi nei dati salvati)
+CONF_RSSI_THRESHOLD_MIN = "rssi_threshold_min"   # vecchio nome di THRESHOLD_HIGH
+CONF_RSSI_THRESHOLD_MAX = "rssi_threshold_max"   # vecchio nome di THRESHOLD_LOW
 # Zona assegnata quando il beacon è vicino all'antenna (segnale forte)
 CONF_ZONE_NEAR = "zone_near"
 # Zona assegnata quando il beacon è lontano dall'antenna (segnale medio)

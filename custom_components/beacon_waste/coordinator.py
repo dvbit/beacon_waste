@@ -50,8 +50,10 @@ from .const import (
     CONF_PICKUP_BOOLEAN_ENTITY,
     PICKUP_MODE_CALENDAR,
     PICKUP_MODE_BOOLEAN,
-    CONF_RSSI_THRESHOLD_MIN,
-    CONF_RSSI_THRESHOLD_MAX,
+    CONF_RSSI_THRESHOLD_LOW,
+    CONF_RSSI_THRESHOLD_HIGH,
+    CONF_RSSI_THRESHOLD_MIN,  # alias legacy
+    CONF_RSSI_THRESHOLD_MAX,  # alias legacy
     CONF_ZONE_NEAR,
     CONF_ZONE_FAR,
     CONF_TMON_HOME,
@@ -180,10 +182,20 @@ class BinCoordinator:
         self._unsub_listeners: list[Any] = []
 
         # --- Soglie RSSI (globali, condivise da tutti i secchi) ---
-        # threshold_min: più vicino a 0 = segnale forte = beacon vicino
-        # threshold_max: più negativo = segnale debole = beacon lontano
-        self._threshold_min: float = float(global_config[CONF_RSSI_THRESHOLD_MIN])
-        self._threshold_max: float = float(global_config[CONF_RSSI_THRESHOLD_MAX])
+        # Specifica: soglia1 < soglia2 (entrambe negative in dBm)
+        # RSSI < soglia_low  → ZONE_UNDEFINED (disperso)
+        # soglia_low <= RSSI < soglia_high → zone_far (zona lontana)
+        # RSSI >= soglia_high → zone_near (zona vicina)
+        # Supporta sia i nuovi nomi (rssi_threshold_low/high) sia i vecchi
+        # (rssi_threshold_min/max) per retrocompatibilità con dati salvati.
+        self._threshold_low: float = float(
+            global_config.get(CONF_RSSI_THRESHOLD_LOW)
+            or global_config.get(CONF_RSSI_THRESHOLD_MAX, -80)
+        )
+        self._threshold_high: float = float(
+            global_config.get(CONF_RSSI_THRESHOLD_HIGH)
+            or global_config.get(CONF_RSSI_THRESHOLD_MIN, -50)
+        )
 
         # Mappatura zone: l'utente sceglie quale zona fisica corrisponde
         # al segnale forte (vicino all'antenna) e quale al segnale medio
@@ -349,20 +361,20 @@ class BinCoordinator:
     def _get_rssi_zone(self, rssi: float) -> str:
         """Determina la zona dal valore RSSI.
 
-        Fasce di segnale (threshold_min > threshold_max, entrambi negativi):
-        - [threshold_min, 0]           → zone_near (segnale forte, vicino)
-        - [threshold_max, threshold_min) → zone_far  (segnale medio, lontano)
-        - sotto threshold_max           → ZONE_UNDEFINED (disperso)
+        Logica (soglia_low < soglia_high, entrambe negative in dBm):
+        - RSSI < soglia_low              → ZONE_UNDEFINED (disperso)
+        - soglia_low <= RSSI < soglia_high → zone_far (zona lontana)
+        - RSSI >= soglia_high            → zone_near (zona vicina)
 
         Args:
-            rssi: valore RSSI in dBm (negativo, più vicino a 0 = più forte)
+            rssi: valore RSSI in dBm (negativo, es. -65)
 
         Returns:
             Nome della zona: casa, prelievo, o non_definita
         """
-        if rssi >= self._threshold_min:
+        if rssi >= self._threshold_high:
             return self._zone_near
-        if rssi >= self._threshold_max:
+        if rssi >= self._threshold_low:
             return self._zone_far
         return ZONE_UNDEFINED
 

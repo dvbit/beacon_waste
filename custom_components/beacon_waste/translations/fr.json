@@ -6,20 +6,20 @@
                 "description": "{beacon_count} beacons trouvés. Sélectionnez ceux à surveiller et configurez les paramètres globaux.",
                 "data": {
                     "selected_beacons": "Beacons trouvés",
-                    "rssi_threshold_min": "Seuil RSSI minimum (signal fort, proche)",
-                    "rssi_threshold_max": "Seuil RSSI maximum (signal faible, éloigné)",
                     "zone_near": "Zone pour signal fort (proche de l'antenne)",
                     "zone_far": "Zone pour signal moyen (éloigné de l'antenne)",
                     "tmon_home": "Debounce zone Maison (secondes)",
                     "tmon_pickup": "Debounce zone Collecte (secondes)",
-                    "tmon_lost": "Debounce zone Non Définie (secondes)"
+                    "tmon_lost": "Debounce zone Non Définie (secondes)",
+                    "rssi_threshold_low": "Seuil RSSI bas - Seuil1 (en dessous = perdu)",
+                    "rssi_threshold_high": "Seuil RSSI haut - Seuil2 (au-dessus = zone proche)"
                 },
                 "data_description": {
                     "selected_beacons": "Sélectionnez les beacons à surveiller. Chaque entrée affiche : Nom du beacon (adresse MAC)",
-                    "rssi_threshold_min": "Au-dessus de cette valeur, le beacon est dans la zone 'proche' (ex. -50 dBm)",
-                    "rssi_threshold_max": "En dessous de cette valeur, le beacon est perdu (ex. -80 dBm). Entre les deux seuils = zone 'éloignée'",
                     "zone_near": "Quelle zone attribuer lorsque le beacon est proche de l'antenne",
-                    "zone_far": "Quelle zone attribuer lorsque le beacon est éloigné de l'antenne"
+                    "zone_far": "Quelle zone attribuer lorsque le beacon est éloigné de l'antenne",
+                    "rssi_threshold_low": "RSSI < Seuil1 → Perdu. Ex. -80 dBm.",
+                    "rssi_threshold_high": "RSSI ≥ Seuil2 → Zone proche. Ex. -50 dBm."
                 }
             },
             "bin": {
@@ -53,7 +53,7 @@
             }
         },
         "error": {
-            "invalid_rssi_thresholds": "Le seuil minimum doit être supérieur au maximum.",
+            "invalid_rssi_thresholds": "Seuil1 doit être inférieur à Seuil2 (ex. -80 < -50).",
             "no_pickup_days": "Sélectionnez au moins un jour de collecte.",
             "same_zone_assignment": "Les deux zones doivent être différentes.",
             "no_beacons_selected": "Sélectionnez au moins un beacon.",
@@ -69,13 +69,17 @@
                 "title": "Reconfigurer les paramètres globaux",
                 "description": "Modifiez les seuils RSSI, les zones et les temps de debounce. Les poubelles configurées restent inchangées.",
                 "data": {
-                    "rssi_threshold_min": "Seuil RSSI minimum",
-                    "rssi_threshold_max": "Seuil RSSI maximum",
                     "zone_near": "Zone signal fort",
                     "zone_far": "Zone signal moyen",
                     "tmon_home": "Debounce zone Maison (s)",
                     "tmon_pickup": "Debounce zone Collecte (s)",
-                    "tmon_lost": "Debounce zone Non Définie (s)"
+                    "tmon_lost": "Debounce zone Non Définie (s)",
+                    "rssi_threshold_low": "Seuil RSSI bas - Seuil1 (en dessous = perdu)",
+                    "rssi_threshold_high": "Seuil RSSI haut - Seuil2 (au-dessus = zone proche)"
+                },
+                "data_description": {
+                    "rssi_threshold_low": "RSSI < Seuil1 → Perdu. Ex. -80 dBm.",
+                    "rssi_threshold_high": "RSSI ≥ Seuil2 → Zone proche. Ex. -50 dBm."
                 }
             }
         }

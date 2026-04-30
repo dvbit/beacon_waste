@@ -6,20 +6,20 @@
                 "description": "{beacon_count} Beacons gefunden. Wählen Sie die zu überwachenden aus und konfigurieren Sie die globalen Parameter.",
                 "data": {
                     "selected_beacons": "Gefundene Beacons",
-                    "rssi_threshold_min": "RSSI-Schwelle minimal (starkes Signal, nah)",
-                    "rssi_threshold_max": "RSSI-Schwelle maximal (schwaches Signal, fern)",
                     "zone_near": "Zone für starkes Signal (nahe der Antenne)",
                     "zone_far": "Zone für mittleres Signal (fern der Antenne)",
                     "tmon_home": "Debounce Zone Zuhause (Sekunden)",
                     "tmon_pickup": "Debounce Zone Abholung (Sekunden)",
-                    "tmon_lost": "Debounce Zone Nicht Definiert (Sekunden)"
+                    "tmon_lost": "Debounce Zone Nicht Definiert (Sekunden)",
+                    "rssi_threshold_low": "RSSI-Schwelle niedrig - Schwelle1 (darunter = verloren)",
+                    "rssi_threshold_high": "RSSI-Schwelle hoch - Schwelle2 (darüber = nahe Zone)"
                 },
                 "data_description": {
                     "selected_beacons": "Wählen Sie die zu überwachenden Beacons. Jeder Eintrag zeigt: Beacon-Name (MAC-Adresse)",
-                    "rssi_threshold_min": "Über diesem Wert befindet sich der Beacon in der 'nahen' Zone (z.B. -50 dBm)",
-                    "rssi_threshold_max": "Unter diesem Wert gilt der Beacon als verloren (z.B. -80 dBm). Zwischen beiden Schwellen = 'ferne' Zone",
                     "zone_near": "Welche Zone zuweisen, wenn der Beacon nahe der Antenne ist",
-                    "zone_far": "Welche Zone zuweisen, wenn der Beacon fern der Antenne ist"
+                    "zone_far": "Welche Zone zuweisen, wenn der Beacon fern der Antenne ist",
+                    "rssi_threshold_low": "RSSI < Schwelle1 → Verloren. Z.B. -80 dBm.",
+                    "rssi_threshold_high": "RSSI ≥ Schwelle2 → Nahe Zone. Z.B. -50 dBm."
                 }
             },
             "bin": {
@@ -53,7 +53,7 @@
             }
         },
         "error": {
-            "invalid_rssi_thresholds": "Der Mindestschwellenwert muss größer als der Höchstwert sein.",
+            "invalid_rssi_thresholds": "Schwelle1 muss kleiner als Schwelle2 sein (z.B. -80 < -50).",
             "no_pickup_days": "Wählen Sie mindestens einen Abfuhrtag.",
             "same_zone_assignment": "Die beiden Zonen müssen unterschiedlich sein.",
             "no_beacons_selected": "Wählen Sie mindestens einen Beacon.",
@@ -69,13 +69,17 @@
                 "title": "Globale Parameter neu konfigurieren",
                 "description": "RSSI-Schwellen, Zonen und Debounce-Zeiten ändern. Konfigurierte Tonnen bleiben unverändert.",
                 "data": {
-                    "rssi_threshold_min": "RSSI-Schwelle minimal",
-                    "rssi_threshold_max": "RSSI-Schwelle maximal",
                     "zone_near": "Zone starkes Signal",
                     "zone_far": "Zone mittleres Signal",
                     "tmon_home": "Debounce Zone Zuhause (s)",
                     "tmon_pickup": "Debounce Zone Abholung (s)",
-                    "tmon_lost": "Debounce Zone Nicht Definiert (s)"
+                    "tmon_lost": "Debounce Zone Nicht Definiert (s)",
+                    "rssi_threshold_low": "RSSI-Schwelle niedrig - Schwelle1 (darunter = verloren)",
+                    "rssi_threshold_high": "RSSI-Schwelle hoch - Schwelle2 (darüber = nahe Zone)"
+                },
+                "data_description": {
+                    "rssi_threshold_low": "RSSI < Schwelle1 → Verloren. Z.B. -80 dBm.",
+                    "rssi_threshold_high": "RSSI ≥ Schwelle2 → Nahe Zone. Z.B. -50 dBm."
                 }
             }
         }
