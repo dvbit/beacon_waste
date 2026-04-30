@@ -1,0 +1,54 @@
+{
+    "config": {
+        "step": {
+            "user": {
+                "title": "Beacon Waste Collection",
+                "description": "{beacon_count} beacons trouvés. Sélectionnez ceux à surveiller et configurez les paramètres globaux.",
+                "data": {
+                    "selected_beacons": "Beacons trouvés",
+                    "rssi_threshold_min": "Seuil RSSI minimum (signal fort, proche)",
+                    "rssi_threshold_max": "Seuil RSSI maximum (signal faible, éloigné)",
+                    "zone_near": "Zone pour signal fort (proche de l'antenne)",
+                    "zone_far": "Zone pour signal moyen (éloigné de l'antenne)",
+                    "tmon_home": "Debounce zone Maison (secondes)",
+                    "tmon_pickup": "Debounce zone Collecte (secondes)",
+                    "tmon_lost": "Debounce zone Non Définie (secondes)"
+                },
+                "data_description": {
+                    "selected_beacons": "Sélectionnez les beacons à surveiller. Chaque entrée affiche : Nom du beacon (adresse MAC)",
+                    "rssi_threshold_min": "Au-dessus de cette valeur, le beacon est dans la zone 'proche' (ex. -50 dBm)",
+                    "rssi_threshold_max": "En dessous de cette valeur, le beacon est perdu (ex. -80 dBm). Entre les deux seuils = zone 'éloignée'",
+                    "zone_near": "Quelle zone attribuer lorsque le beacon est proche de l'antenne",
+                    "zone_far": "Quelle zone attribuer lorsque le beacon est éloigné de l'antenne"
+                }
+            },
+            "bin": {
+                "title": "Configurer poubelle {bin_number} : {beacon_name}",
+                "description": "Beacon : {beacon_name} (MAC : {beacon_mac}). Configurez le nom, les jours et l'heure d'exposition.",
+                "data": {
+                    "bin_name": "Nom du type de déchet",
+                    "day_mon": "Lundi",
+                    "day_tue": "Mardi",
+                    "day_wed": "Mercredi",
+                    "day_thu": "Jeudi",
+                    "day_fri": "Vendredi",
+                    "day_sat": "Samedi",
+                    "day_sun": "Dimanche",
+                    "pickup_time_start": "Heure de début d'exposition (veille au soir)"
+                },
+                "data_description": {
+                    "pickup_time_start": "Heure à partir de laquelle la poubelle peut être exposée la veille du jour de collecte (ex. 20:00)"
+                }
+            }
+        },
+        "error": {
+            "invalid_rssi_thresholds": "Le seuil minimum doit être supérieur au maximum (plus proche de 0 = signal plus fort).",
+            "no_pickup_days": "Sélectionnez au moins un jour de collecte.",
+            "same_zone_assignment": "Les deux zones doivent être différentes.",
+            "no_beacons_selected": "Sélectionnez au moins un beacon à surveiller."
+        },
+        "abort": {
+            "no_beacons_found": "Aucun beacon trouvé. Vérifiez que les capteurs ESPHome sont actifs avec le modèle sensor.*_XXXXXXXXXXXX_rssi."
+        }
+    }
+}

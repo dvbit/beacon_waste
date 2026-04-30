@@ -1,0 +1,54 @@
+{
+    "config": {
+        "step": {
+            "user": {
+                "title": "Beacon Waste Collection",
+                "description": "Se encontraron {beacon_count} beacons. Selecciona cuáles monitorizar y configura los parámetros globales.",
+                "data": {
+                    "selected_beacons": "Beacons encontrados",
+                    "rssi_threshold_min": "Umbral RSSI mínimo (señal fuerte, cerca)",
+                    "rssi_threshold_max": "Umbral RSSI máximo (señal débil, lejos)",
+                    "zone_near": "Zona para señal fuerte (cerca de la antena)",
+                    "zone_far": "Zona para señal media (lejos de la antena)",
+                    "tmon_home": "Debounce zona Casa (segundos)",
+                    "tmon_pickup": "Debounce zona Recogida (segundos)",
+                    "tmon_lost": "Debounce zona No Definida (segundos)"
+                },
+                "data_description": {
+                    "selected_beacons": "Selecciona los beacons a monitorizar. Cada entrada muestra: Nombre beacon (dirección MAC)",
+                    "rssi_threshold_min": "Por encima de este valor el beacon está en la zona 'cercana' (ej. -50 dBm)",
+                    "rssi_threshold_max": "Por debajo de este valor el beacon está perdido (ej. -80 dBm). Entre ambos umbrales está en la zona 'lejana'",
+                    "zone_near": "Qué zona asignar cuando el beacon está cerca de la antena",
+                    "zone_far": "Qué zona asignar cuando el beacon está lejos de la antena"
+                }
+            },
+            "bin": {
+                "title": "Configurar cubo {bin_number}: {beacon_name}",
+                "description": "Beacon: {beacon_name} (MAC: {beacon_mac}). Configura nombre, días y horario de exposición.",
+                "data": {
+                    "bin_name": "Nombre del tipo de residuo",
+                    "day_mon": "Lunes",
+                    "day_tue": "Martes",
+                    "day_wed": "Miércoles",
+                    "day_thu": "Jueves",
+                    "day_fri": "Viernes",
+                    "day_sat": "Sábado",
+                    "day_sun": "Domingo",
+                    "pickup_time_start": "Hora de inicio exposición (noche anterior)"
+                },
+                "data_description": {
+                    "pickup_time_start": "Hora a partir de la cual el cubo puede exponerse la noche anterior al día de recogida (ej. 20:00)"
+                }
+            }
+        },
+        "error": {
+            "invalid_rssi_thresholds": "El umbral mínimo debe ser mayor que el máximo (más cercano a 0 = señal más fuerte).",
+            "no_pickup_days": "Selecciona al menos un día de recogida.",
+            "same_zone_assignment": "Las dos zonas deben ser diferentes entre sí.",
+            "no_beacons_selected": "Selecciona al menos un beacon a monitorizar."
+        },
+        "abort": {
+            "no_beacons_found": "No se encontraron beacons. Verifica que los sensores ESPHome estén activos con el patrón sensor.*_XXXXXXXXXXXX_rssi."
+        }
+    }
+}

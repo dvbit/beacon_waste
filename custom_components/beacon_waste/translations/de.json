@@ -1,0 +1,54 @@
+{
+    "config": {
+        "step": {
+            "user": {
+                "title": "Beacon Waste Collection",
+                "description": "{beacon_count} Beacons gefunden. Wählen Sie die zu überwachenden aus und konfigurieren Sie die globalen Parameter.",
+                "data": {
+                    "selected_beacons": "Gefundene Beacons",
+                    "rssi_threshold_min": "RSSI-Schwelle minimal (starkes Signal, nah)",
+                    "rssi_threshold_max": "RSSI-Schwelle maximal (schwaches Signal, fern)",
+                    "zone_near": "Zone für starkes Signal (nahe der Antenne)",
+                    "zone_far": "Zone für mittleres Signal (fern der Antenne)",
+                    "tmon_home": "Debounce Zone Zuhause (Sekunden)",
+                    "tmon_pickup": "Debounce Zone Abholung (Sekunden)",
+                    "tmon_lost": "Debounce Zone Nicht Definiert (Sekunden)"
+                },
+                "data_description": {
+                    "selected_beacons": "Wählen Sie die zu überwachenden Beacons. Jeder Eintrag zeigt: Beacon-Name (MAC-Adresse)",
+                    "rssi_threshold_min": "Über diesem Wert befindet sich der Beacon in der 'nahen' Zone (z.B. -50 dBm)",
+                    "rssi_threshold_max": "Unter diesem Wert gilt der Beacon als verloren (z.B. -80 dBm). Zwischen beiden Schwellen = 'ferne' Zone",
+                    "zone_near": "Welche Zone zuweisen, wenn der Beacon nahe der Antenne ist",
+                    "zone_far": "Welche Zone zuweisen, wenn der Beacon fern der Antenne ist"
+                }
+            },
+            "bin": {
+                "title": "Tonne {bin_number} konfigurieren: {beacon_name}",
+                "description": "Beacon: {beacon_name} (MAC: {beacon_mac}). Name, Abfuhrtage und Bereitstellungszeit konfigurieren.",
+                "data": {
+                    "bin_name": "Name der Abfallart",
+                    "day_mon": "Montag",
+                    "day_tue": "Dienstag",
+                    "day_wed": "Mittwoch",
+                    "day_thu": "Donnerstag",
+                    "day_fri": "Freitag",
+                    "day_sat": "Samstag",
+                    "day_sun": "Sonntag",
+                    "pickup_time_start": "Bereitstellungszeit (Vorabend)"
+                },
+                "data_description": {
+                    "pickup_time_start": "Uhrzeit, ab der die Tonne am Vorabend des Abfuhrtages bereitgestellt werden kann (z.B. 20:00)"
+                }
+            }
+        },
+        "error": {
+            "invalid_rssi_thresholds": "Der Mindestschwellenwert muss größer als der Höchstwert sein (näher an 0 = stärkeres Signal).",
+            "no_pickup_days": "Wählen Sie mindestens einen Abfuhrtag.",
+            "same_zone_assignment": "Die beiden Zonen müssen unterschiedlich sein.",
+            "no_beacons_selected": "Wählen Sie mindestens einen Beacon zur Überwachung."
+        },
+        "abort": {
+            "no_beacons_found": "Keine Beacons gefunden. Überprüfen Sie, ob die ESPHome-Sensoren mit dem Muster sensor.*_XXXXXXXXXXXX_rssi aktiv sind."
+        }
+    }
+}

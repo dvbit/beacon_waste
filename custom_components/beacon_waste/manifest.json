@@ -1,0 +1,10 @@
+{
+    "domain": "beacon_waste",
+    "name": "Beacon Waste Collection",
+    "codeowners": [],
+    "config_flow": true,
+    "dependencies": [],
+    "documentation": "https://github.com/your-repo/beacon_waste",
+    "iot_class": "local_push",
+    "version": "1.0.0"
+}

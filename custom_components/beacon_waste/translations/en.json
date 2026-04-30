@@ -1,0 +1,54 @@
+{
+    "config": {
+        "step": {
+            "user": {
+                "title": "Beacon Waste Collection",
+                "description": "Found {beacon_count} beacons. Select which to monitor and configure global settings.",
+                "data": {
+                    "selected_beacons": "Discovered beacons",
+                    "rssi_threshold_min": "RSSI threshold min (strong signal, near)",
+                    "rssi_threshold_max": "RSSI threshold max (weak signal, far)",
+                    "zone_near": "Zone for strong signal (near antenna)",
+                    "zone_far": "Zone for medium signal (far from antenna)",
+                    "tmon_home": "Debounce Home zone (seconds)",
+                    "tmon_pickup": "Debounce Pickup zone (seconds)",
+                    "tmon_lost": "Debounce Undefined zone (seconds)"
+                },
+                "data_description": {
+                    "selected_beacons": "Select beacons to monitor. Each entry shows: Beacon name (MAC address)",
+                    "rssi_threshold_min": "RSSI above this value means beacon is in 'near' zone (e.g. -50 dBm)",
+                    "rssi_threshold_max": "RSSI below this value means beacon is lost (e.g. -80 dBm). Between = 'far' zone",
+                    "zone_near": "Which zone to assign when beacon is near antenna",
+                    "zone_far": "Which zone to assign when beacon is far from antenna"
+                }
+            },
+            "bin": {
+                "title": "Configure bin {bin_number}: {beacon_name}",
+                "description": "Beacon: {beacon_name} (MAC: {beacon_mac}). Configure name, pickup days and exposure time.",
+                "data": {
+                    "bin_name": "Waste type name",
+                    "day_mon": "Monday",
+                    "day_tue": "Tuesday",
+                    "day_wed": "Wednesday",
+                    "day_thu": "Thursday",
+                    "day_fri": "Friday",
+                    "day_sat": "Saturday",
+                    "day_sun": "Sunday",
+                    "pickup_time_start": "Exposure start time (evening before)"
+                },
+                "data_description": {
+                    "pickup_time_start": "Time from which the bin can be exposed the evening before pickup day (e.g. 20:00)"
+                }
+            }
+        },
+        "error": {
+            "invalid_rssi_thresholds": "Min threshold must be greater than max threshold (closer to 0 = stronger signal).",
+            "no_pickup_days": "Select at least one pickup day.",
+            "same_zone_assignment": "The two zones must be different from each other.",
+            "no_beacons_selected": "Select at least one beacon to monitor."
+        },
+        "abort": {
+            "no_beacons_found": "No beacons found. Verify ESPHome sensors are active with pattern sensor.*_XXXXXXXXXXXX_rssi."
+        }
+    }
+}

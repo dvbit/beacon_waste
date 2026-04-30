@@ -1,0 +1,54 @@
+{
+    "config": {
+        "step": {
+            "user": {
+                "title": "Beacon Waste Collection",
+                "description": "Trovati {beacon_count} beacon. Seleziona quali monitorare e configura i parametri globali.",
+                "data": {
+                    "selected_beacons": "Beacon trovati",
+                    "rssi_threshold_min": "Soglia RSSI minima (segnale forte, vicino)",
+                    "rssi_threshold_max": "Soglia RSSI massima (segnale debole, lontano)",
+                    "zone_near": "Zona per segnale forte (vicino all'antenna)",
+                    "zone_far": "Zona per segnale medio (lontano dall'antenna)",
+                    "tmon_home": "Debounce zona Casa (secondi)",
+                    "tmon_pickup": "Debounce zona Prelievo (secondi)",
+                    "tmon_lost": "Debounce zona Non Definita (secondi)"
+                },
+                "data_description": {
+                    "selected_beacons": "Seleziona i beacon da monitorare. Ogni voce mostra: Nome beacon (indirizzo MAC)",
+                    "rssi_threshold_min": "Sopra questo valore il beacon è nella zona 'vicina' (es. -50 dBm)",
+                    "rssi_threshold_max": "Sotto questo valore il beacon è disperso (es. -80 dBm). Tra le due soglie è nella zona 'lontana'",
+                    "zone_near": "Quale zona assegnare quando il beacon è vicino all'antenna",
+                    "zone_far": "Quale zona assegnare quando il beacon è lontano dall'antenna"
+                }
+            },
+            "bin": {
+                "title": "Configura secchio {bin_number}: {beacon_name}",
+                "description": "Beacon: {beacon_name} (MAC: {beacon_mac}). Configura nome, giorni e orario di esposizione.",
+                "data": {
+                    "bin_name": "Nome tipologia spazzatura",
+                    "day_mon": "Lunedì",
+                    "day_tue": "Martedì",
+                    "day_wed": "Mercoledì",
+                    "day_thu": "Giovedì",
+                    "day_fri": "Venerdì",
+                    "day_sat": "Sabato",
+                    "day_sun": "Domenica",
+                    "pickup_time_start": "Orario inizio esposizione (sera precedente)"
+                },
+                "data_description": {
+                    "pickup_time_start": "Ora a partire dalla quale il secchio può essere esposto la sera prima del giorno di prelievo (es. 20:00)"
+                }
+            }
+        },
+        "error": {
+            "invalid_rssi_thresholds": "Soglia minima deve essere maggiore della soglia massima (più vicino a 0 = segnale più forte).",
+            "no_pickup_days": "Seleziona almeno un giorno di prelievo.",
+            "same_zone_assignment": "Le due zone devono essere diverse tra loro.",
+            "no_beacons_selected": "Seleziona almeno un beacon da monitorare."
+        },
+        "abort": {
+            "no_beacons_found": "Nessun beacon trovato. Verifica che i sensori ESPHome siano attivi con il pattern sensor.*_XXXXXXXXXXXX_rssi."
+        }
+    }
+}
