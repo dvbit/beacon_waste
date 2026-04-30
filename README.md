@@ -8,6 +8,8 @@ Integrazione custom per Home Assistant che gestisce il conferimento della spazza
 
 Ogni secchio della spazzatura ha un beacon incollato sopra che espone sensori di RSSI, vibrazione, temperatura, umidità e un pulsante. L'integrazione usa questi dati per determinare automaticamente la posizione dei secchi e il loro stato operativo.
 
+Per i Beacon e il relativo gateway vedere la sottodirectory ESPHOME ed il readme
+
 ![Beacon Waste Collection Overview](images/overview.png)
 
 ---
